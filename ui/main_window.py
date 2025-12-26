@@ -7,7 +7,7 @@ from tkinter import ttk, messagebox
 from datetime import date
 import webbrowser
 import pyperclip
-import keyboard
+from pynput import keyboard
 
 # 親ディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -306,68 +306,74 @@ class TranslationApp(tk.Tk):
         self.text_area.see(tk.END)
 
     # ホットキー関連
+    def _build_hotkey_string(self, key, use_ctrl, use_alt, use_shift):
+        """pynput用のホットキー文字列を構築する"""
+        parts = []
+        if use_ctrl:
+            parts.append('<ctrl>')
+        if use_alt:
+            parts.append('<alt>')
+        if use_shift:
+            parts.append('<shift>')
+        parts.append(key.lower())
+        return '+'.join(parts)
+
     def hotkey_listener(self):
-        """ホットキーを監視する"""
+        """ホットキーを監視する（pynput版）"""
+        # 設定からホットキーを読み込み
         hotkey_key = config.get('Settings', 'hotkey_key', fallback='d')
         dict_hotkey_key = config.get('Settings', 'dict_hotkey_key', fallback='j')
         speech_hotkey_key = config.get('Settings', 'speech_hotkey_key', fallback='t')
 
-        keyboard.on_release_key(hotkey_key, self.hotkey_callback, suppress=True)
-        keyboard.on_release_key(dict_hotkey_key, self.dict_hotkey_callback, suppress=True)
-        keyboard.on_release_key(speech_hotkey_key, self.speech_hotkey_callback, suppress=True)
-        keyboard.wait()
-
-    def hotkey_callback(self, e):
-        """通常の翻訳ホットキーが押されたときの処理"""
         use_ctrl = self.get_config_bool('Settings', 'hotkey_ctrl', True)
         use_alt = self.get_config_bool('Settings', 'hotkey_alt', True)
         use_shift = self.get_config_bool('Settings', 'hotkey_shift', False)
 
-        ctrl_pressed = keyboard.is_pressed('ctrl')
-        alt_pressed = keyboard.is_pressed('alt')
-        shift_pressed = keyboard.is_pressed('shift')
+        dict_use_ctrl = self.get_config_bool('Settings', 'dict_hotkey_ctrl', True)
+        dict_use_alt = self.get_config_bool('Settings', 'dict_hotkey_alt', True)
+        dict_use_shift = self.get_config_bool('Settings', 'dict_hotkey_shift', False)
 
-        if ((not use_ctrl or ctrl_pressed) and
-            (not use_alt or alt_pressed) and
-            (not use_shift or shift_pressed)):
-            self.update_status("翻訳中...")
-            threading.Thread(target=self.perform_translation, daemon=True).start()
+        speech_use_ctrl = self.get_config_bool('Settings', 'speech_hotkey_ctrl', True)
+        speech_use_alt = self.get_config_bool('Settings', 'speech_hotkey_alt', True)
+        speech_use_shift = self.get_config_bool('Settings', 'speech_hotkey_shift', False)
 
-    def dict_hotkey_callback(self, e):
+        # ホットキー文字列を構築
+        translate_hotkey = self._build_hotkey_string(hotkey_key, use_ctrl, use_alt, use_shift)
+        dict_hotkey = self._build_hotkey_string(dict_hotkey_key, dict_use_ctrl, dict_use_alt, dict_use_shift)
+        speech_hotkey = self._build_hotkey_string(speech_hotkey_key, speech_use_ctrl, speech_use_alt, speech_use_shift)
+
+        print(f"ホットキー設定: 翻訳={translate_hotkey}, 辞書={dict_hotkey}, 音声={speech_hotkey}")
+
+        # GlobalHotKeysを設定
+        hotkey_map = {
+            translate_hotkey: self.hotkey_callback,
+            dict_hotkey: self.dict_hotkey_callback,
+            speech_hotkey: self.speech_hotkey_callback,
+        }
+
+        self.global_hotkeys = keyboard.GlobalHotKeys(hotkey_map)
+        self.global_hotkeys.start()
+        self.global_hotkeys.join()
+
+    def hotkey_callback(self):
+        """通常の翻訳ホットキーが押されたときの処理"""
+        self.update_status("翻訳中...")
+        threading.Thread(target=self.perform_translation, daemon=True).start()
+
+    def dict_hotkey_callback(self):
         """辞書専用ホットキーが押されたときの処理"""
-        use_ctrl = self.get_config_bool('Settings', 'dict_hotkey_ctrl', True)
-        use_alt = self.get_config_bool('Settings', 'dict_hotkey_alt', True)
-        use_shift = self.get_config_bool('Settings', 'dict_hotkey_shift', False)
+        self.update_status("辞書検索中...")
+        threading.Thread(target=self.perform_dictionary_translation, daemon=True).start()
 
-        ctrl_pressed = keyboard.is_pressed('ctrl')
-        alt_pressed = keyboard.is_pressed('alt')
-        shift_pressed = keyboard.is_pressed('shift')
-
-        if ((not use_ctrl or ctrl_pressed) and
-            (not use_alt or alt_pressed) and
-            (not use_shift or shift_pressed)):
-            self.update_status("辞書検索中...")
-            threading.Thread(target=self.perform_dictionary_translation, daemon=True).start()
-
-    def speech_hotkey_callback(self, e):
+    def speech_hotkey_callback(self):
         """音声出力ホットキーが押されたときの処理"""
-        use_ctrl = self.get_config_bool('Settings', 'speech_hotkey_ctrl', True)
-        use_alt = self.get_config_bool('Settings', 'speech_hotkey_alt', True)
-        use_shift = self.get_config_bool('Settings', 'speech_hotkey_shift', False)
-
-        ctrl_pressed = keyboard.is_pressed('ctrl')
-        alt_pressed = keyboard.is_pressed('alt')
-        shift_pressed = keyboard.is_pressed('shift')
-
-        if ((not use_ctrl or ctrl_pressed) and
-            (not use_alt or alt_pressed) and
-            (not use_shift or shift_pressed)):
-            self.update_status("音声出力を準備中...")
-            threading.Thread(target=self.perform_speech, daemon=True).start()
+        self.update_status("音声出力を準備中...")
+        threading.Thread(target=self.perform_speech, daemon=True).start()
 
     def restart_hotkey_listener(self):
         """ホットキーリスナーを再起動する"""
-        keyboard.unhook_all()
+        if hasattr(self, 'global_hotkeys') and self.global_hotkeys:
+            self.global_hotkeys.stop()
         self.hotkey_thread = threading.Thread(target=self.hotkey_listener, daemon=True)
         self.hotkey_thread.start()
 

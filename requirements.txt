@@ -1,0 +1,23 @@
+# ClipboardTranslator v1.00 - Requirements
+# Install with: pip install -r requirements.txt
+
+# HTTP requests for API calls (DeepL, Claude)
+requests>=2.28.0
+
+# Clipboard access
+pyperclip>=1.8.0
+
+# Global hotkey support (cross-platform: Windows/macOS/Linux)
+pynput>=1.7.6
+
+# Text-to-Speech
+gTTS>=2.3.0
+
+# Audio playback
+pygame>=2.5.0
+
+# Language detection
+langid>=1.1.6
+
+# Google Translate (optional, for non-EN/JA languages)
+googletrans==4.0.0-rc1
