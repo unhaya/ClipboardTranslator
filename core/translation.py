@@ -72,7 +72,18 @@ def translate_with_google(text, target_lang_code):
         return None
 
 
-def query_claude_api(word, prompt_template, api_key):
+# Claude API モデル定義（2025年12月時点の最新）
+CLAUDE_MODELS = {
+    'sonnet': 'claude-sonnet-4-5-20250929',   # 推奨: バランス型、コーディング・エージェント向け
+    'haiku': 'claude-haiku-4-5-20251001',     # 高速・低コスト
+    'opus': 'claude-opus-4-5-20251101',       # 最高性能・高コスト
+}
+
+# デフォルトモデル
+DEFAULT_CLAUDE_MODEL = 'sonnet'
+
+
+def query_claude_api(word, prompt_template, api_key, model_type=None):
     """
     Claude APIを使用して単語の意味や使い方を取得する（ストリーミングモード）
 
@@ -80,12 +91,19 @@ def query_claude_api(word, prompt_template, api_key):
     word (str): 調べたい単語
     prompt_template (str): プロンプトテンプレート。{word}は実際の単語に置換される
     api_key (str): Claude API キー
+    model_type (str): モデルタイプ ('sonnet', 'haiku', 'opus')。Noneの場合はデフォルト
 
     Returns:
     str: Claude APIからの応答テキスト、エラーの場合はNone
     """
     try:
         prompt = prompt_template.format(word=word)
+
+        # モデル選択
+        if model_type and model_type in CLAUDE_MODELS:
+            model = CLAUDE_MODELS[model_type]
+        else:
+            model = CLAUDE_MODELS[DEFAULT_CLAUDE_MODEL]
 
         headers = {
             "x-api-key": api_key,
@@ -94,7 +112,7 @@ def query_claude_api(word, prompt_template, api_key):
         }
 
         data = {
-            "model": "claude-haiku-4-5-20251001",
+            "model": model,
             "max_tokens": 1000,
             "stream": True,
             "messages": [

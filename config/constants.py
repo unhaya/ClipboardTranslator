@@ -36,8 +36,28 @@ DEFAULT_SETTINGS = {
     'speech_hotkey_shift': 'False',
     'speech_hotkey_key': 't',
     'max_translation_length': '1000',
-    'auto_add_to_vocabulary': 'False'
+    'auto_add_to_vocabulary': 'False',
+    # 家庭教師モード設定
+    'tutor_enabled': 'True',
+    'tutor_model': 'sonnet',
+    'tutor_system_prompt': '''あなたはユーザー専属の家庭教師です。
+以下のルールに従って返答してください：
+
+1. 教科書調にしない - フレンドリーに話す
+2. 過去の履歴を「覚えている体」で話す
+3. 共感を最初に入れる - ユーザーの気持ちに寄り添う
+4. 長文説明は禁止 - 簡潔に、わかりやすく
+5. 必要なら質問で返す - 理解度を確認する
+6. 励ましの言葉を適度に入れる''',
+    'tutor_max_history': '10',
 }
+
+# 家庭教師モデル選択肢
+TUTOR_MODEL_OPTIONS = [
+    ('sonnet', 'Claude Sonnet 4.5 (推奨・バランス型)'),
+    ('haiku', 'Claude Haiku 4.5 (高速・低コスト)'),
+    ('opus', 'Claude Opus 4.5 (最高性能・高コスト)'),
+]
 
 # UI Messages (Multi-language)
 MESSAGES = {
@@ -127,5 +147,5 @@ KEY_OPTIONS = [
 ]
 
 # Version Info
-VERSION = "1.00"
-APP_TITLE = f"ClipboardTranslator v{VERSION}"
+VERSION = "1.0"
+APP_TITLE = "ClipTrans"

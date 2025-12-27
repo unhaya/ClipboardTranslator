@@ -15,12 +15,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.constants import MESSAGES, VERSION, APP_TITLE
 from config.settings import ConfigManager, config, load_config, get_config_file_path
 from core.translation import translate_with_deepl, query_claude_api
-from core.dictionary import check_dictionary
+from core.dictionary import check_dictionary, init_dictionaries, close_dictionary
 from core.language_detection import detect_language, is_single_word
 from core.text_to_speech import TextToSpeechHandler
 from core.history import TranslationHistory
-from core.vocabulary import VocabularyManager
 from core.network import is_connected
+from core.tutor import TutorChatHandler
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -35,6 +35,9 @@ class TranslationApp(tk.Tk):
         self.title(APP_TITLE)
         self.geometry("300x400")
 
+        # ウィンドウアイコンを設定
+        self.set_window_icon()
+
         # 辞書サイズの初期化
         self.dictionary_size = 0
         self.base_dictionary_size = 0
@@ -44,14 +47,28 @@ class TranslationApp(tk.Tk):
         load_config()
         self.config_file = get_config_file_path()
 
+        # 辞書の初期化（SQLiteモード）
+        self.init_dictionary()
+
         # 履歴の初期化
         self.init_history()
 
-        # 単語帳の初期化
-        self.init_vocabulary()
-
         # 音声出力ハンドラーの初期化
         self.init_speech_handler()
+
+        # メニューバーの作成（最初に作成）
+        self.create_menu()
+
+        # === フッター部分を先にpackする（BOTTOMは先にpackしたものが最下部） ===
+
+        # 状態表示ラベル（最下部）
+        self.status_label = tk.Label(self, text="待機中...", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.status_label.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # 会話入力パネルの作成（ステータスバーの上）
+        self.create_chat_panel()
+
+        # === メインコンテンツ（残りのスペースを埋める） ===
 
         # テキストエリアの作成
         self.text_area = tk.Text(
@@ -77,17 +94,15 @@ class TranslationApp(tk.Tk):
         self.text_area.tag_configure('offline_tag', foreground='#f7d195')
         self.text_area.tag_configure('error_tag', foreground='#ff6b6b')
         self.text_area.tag_configure('speech_tag', foreground='#f79595')
+        self.text_area.tag_configure('tutor_user_tag', foreground='#87CEEB')
+        self.text_area.tag_configure('tutor_ai_tag', foreground='#98FB98')
 
         # 右クリックメニューの設定
         self.create_context_menu()
         self.text_area.bind("<Button-3>", self.show_context_menu)
 
-        # 状態表示ラベル
-        self.status_label = tk.Label(self, text="待機中...", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.status_label.pack(side=tk.BOTTOM, fill=tk.X)
-
-        # メニューバーの作成
-        self.create_menu()
+        # 家庭教師チャットハンドラーを初期化（履歴検索機能付き）
+        self.tutor_handler = TutorChatHandler(history_manager=self.history)
 
         # ウィンドウの閉じるボタン押下時の処理を設定
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -98,18 +113,29 @@ class TranslationApp(tk.Tk):
 
         self.log_message(self.get_message('script_running'))
 
+    def init_dictionary(self):
+        """辞書機能を初期化する"""
+        try:
+            # dataディレクトリのパスを取得
+            app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            data_dir = os.path.join(app_dir, 'data')
+
+            # SQLiteモードで辞書を初期化
+            init_dictionaries(data_dir, use_sqlite=True)
+
+            # 辞書サイズを取得
+            from core.dictionary import get_dictionary_size
+            size = get_dictionary_size()
+            self.dictionary_size = size.get('total', 0)
+            print(f"辞書機能を初期化しました: {self.dictionary_size}単語")
+        except Exception as e:
+            print(f"辞書機能の初期化に失敗しました: {e}")
+            self.dictionary_size = 0
+
     def init_history(self):
         """翻訳履歴機能を初期化する"""
         self.history = TranslationHistory(self)
         print("翻訳履歴機能を初期化しました")
-
-    def init_vocabulary(self):
-        """単語帳機能を初期化する"""
-        try:
-            self.vocab_manager = VocabularyManager(self)
-            print("単語帳機能を初期化しました")
-        except Exception as e:
-            print(f"単語帳機能の初期化に失敗しました: {e}")
 
     def init_speech_handler(self):
         """音声出力ハンドラーを初期化する"""
@@ -122,6 +148,27 @@ class TranslationApp(tk.Tk):
         except Exception as e:
             print(f"音声出力ハンドラーの初期化に失敗しました: {e}")
             self.speech_handler = None
+
+    def set_window_icon(self):
+        """ウィンドウアイコンを設定する"""
+        try:
+            # アイコンファイルのパスを取得
+            if getattr(sys, 'frozen', False):
+                # PyInstallerでビルドされた場合
+                base_path = sys._MEIPASS
+            else:
+                # 開発環境
+                base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+            icon_path = os.path.join(base_path, 'icon', '翻訳.ico')
+
+            if os.path.exists(icon_path):
+                self.iconbitmap(icon_path)
+                print(f"ウィンドウアイコンを設定しました: {icon_path}")
+            else:
+                print(f"アイコンファイルが見つかりません: {icon_path}")
+        except Exception as e:
+            print(f"アイコン設定エラー: {e}")
 
     def get_message(self, key, **kwargs):
         """設定された言語に基づいてメッセージを取得"""
@@ -165,12 +212,6 @@ class TranslationApp(tk.Tk):
                                  command=lambda: self.history.clear_history() if hasattr(self, 'history') else None)
         menu_bar.add_cascade(label="履歴", menu=history_menu)
 
-        # 単語帳メニュー
-        vocabulary_menu = tk.Menu(menu_bar, tearoff=0)
-        vocabulary_menu.add_command(label="単語帳を開く", command=self.show_vocabulary_window)
-        vocabulary_menu.add_command(label="クリップボードの単語を追加", command=self.add_clipboard_to_vocabulary)
-        menu_bar.add_cascade(label="単語帳", menu=vocabulary_menu)
-
         # ヘルプメニュー
         help_menu = tk.Menu(menu_bar, tearoff=0)
         help_menu.add_command(label="使い方", command=self.show_help)
@@ -179,6 +220,145 @@ class TranslationApp(tk.Tk):
 
         self.config(menu=menu_bar)
         self.menu_bar = menu_bar
+
+    def create_chat_panel(self):
+        """開閉可能な会話入力パネルを作成"""
+        # パネルの表示状態
+        self.chat_panel_visible = False
+
+        # 会話パネルのコンテナ（最初は非表示）
+        self.chat_panel_frame = tk.Frame(self, bg='#2a2a2a')
+
+        # トグルボタン（常に表示）
+        self.chat_toggle_frame = tk.Frame(self, bg='#404040')
+        self.chat_toggle_frame.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.chat_toggle_btn = tk.Button(
+            self.chat_toggle_frame,
+            text="▲ 質問・相談する",
+            command=self.toggle_chat_panel,
+            bg='#404040',
+            fg='#ffffff',
+            activebackground='#505050',
+            activeforeground='#ffffff',
+            relief=tk.FLAT,
+            cursor='hand2',
+            font=('Yu Gothic UI', 9)
+        )
+        self.chat_toggle_btn.pack(fill=tk.X, pady=2)
+
+        # 入力エリア（パネル内）
+        self.chat_input_frame = tk.Frame(self.chat_panel_frame, bg='#2a2a2a')
+        self.chat_input_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        # 入力テキストボックス
+        self.chat_input = tk.Text(
+            self.chat_input_frame,
+            height=2,
+            wrap=tk.WORD,
+            bg='#1e1e1e',
+            fg='#ffffff',
+            insertbackground='#ffffff',
+            font=('Yu Gothic UI', 10),
+            relief=tk.FLAT,
+            padx=8,
+            pady=5
+        )
+        self.chat_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.chat_input.bind('<Return>', self.on_chat_enter)
+        self.chat_input.bind('<Shift-Return>', self.on_chat_newline)
+
+        # 送信ボタン
+        self.chat_send_btn = tk.Button(
+            self.chat_input_frame,
+            text="送信",
+            command=self.send_chat_message,
+            bg='#4a7c59',
+            fg='#ffffff',
+            activebackground='#5a8c69',
+            activeforeground='#ffffff',
+            relief=tk.FLAT,
+            cursor='hand2',
+            font=('Yu Gothic UI', 9),
+            width=6
+        )
+        self.chat_send_btn.pack(side=tk.RIGHT, padx=(5, 0))
+
+        # ヒントラベル
+        self.chat_hint = tk.Label(
+            self.chat_panel_frame,
+            text="「教えて」「質問していい？」などで家庭教師モードが起動します",
+            bg='#2a2a2a',
+            fg='#888888',
+            font=('Yu Gothic UI', 8)
+        )
+        self.chat_hint.pack(anchor=tk.W, padx=8, pady=(0, 5))
+
+    def toggle_chat_panel(self):
+        """会話パネルの表示/非表示を切り替える"""
+        if self.chat_panel_visible:
+            # パネルを非表示
+            self.chat_panel_frame.pack_forget()
+            self.chat_toggle_btn.config(text="▲ 質問・相談する")
+            self.chat_panel_visible = False
+        else:
+            # パネルを表示（トグルボタンの上に）
+            self.chat_panel_frame.pack(side=tk.BOTTOM, fill=tk.X, before=self.chat_toggle_frame)
+            self.chat_toggle_btn.config(text="▼ 閉じる")
+            self.chat_panel_visible = True
+            # 入力欄にフォーカス
+            self.chat_input.focus_set()
+
+    def on_chat_enter(self, event):
+        """Enterキーで送信"""
+        self.send_chat_message()
+        return 'break'  # デフォルトの改行を防止
+
+    def on_chat_newline(self, event):
+        """Shift+Enterで改行"""
+        return None  # デフォルト動作（改行挿入）を許可
+
+    def send_chat_message(self):
+        """チャットメッセージを送信"""
+        message = self.chat_input.get("1.0", tk.END).strip()
+        if not message:
+            return
+
+        # 入力欄をクリア
+        self.chat_input.delete("1.0", tk.END)
+
+        # ユーザーのメッセージを表示
+        self.log_tutor_message(message, is_user=True)
+
+        # RAG家庭教師処理を実行（別スレッドで）
+        self.update_status("考え中...")
+        threading.Thread(target=self.process_tutor_message, args=(message,), daemon=True).start()
+
+    def log_tutor_message(self, message, is_user=True):
+        """家庭教師モードのメッセージを表示"""
+        self.text_area.configure(state='normal')
+
+        if is_user:
+            self.text_area.insert(tk.END, "\n[あなた] ", 'tutor_user_tag')
+            self.text_area.insert(tk.END, message + "\n")
+        else:
+            self.text_area.insert(tk.END, "\n[先生] ", 'tutor_ai_tag')
+            self.text_area.insert(tk.END, message + "\n")
+
+        self.text_area.configure(state='disabled')
+        self.text_area.see(tk.END)
+
+    def process_tutor_message(self, message):
+        """家庭教師モードのメッセージを処理（TutorChatHandlerに委譲）"""
+        def on_success(response):
+            self.log_tutor_message(response, is_user=False)
+            self.update_status('待機中...')
+
+        def on_error(error_msg):
+            self.log_tutor_message(error_msg, is_user=False)
+            self.update_status('error_occurred')
+
+        self.tutor_handler.process_message(message, on_success=on_success, on_error=on_error)
 
     def create_context_menu(self):
         """右クリックメニューの作成"""
@@ -500,10 +680,10 @@ class TranslationApp(tk.Tk):
                 else:
                     local_dict_result = None
 
-                # Claude APIで詳細を取得
+                # Claude APIで詳細を取得（辞書検索はHaikuで高速処理）
                 if claude_api_key and prompt_template and is_connected():
                     self.update_status('translation_in_progress')
-                    claude_result = query_claude_api(text, prompt_template, claude_api_key)
+                    claude_result = query_claude_api(text, prompt_template, claude_api_key, model_type='haiku')
 
                     if claude_result:
                         self.log_message(f"{self.get_message('dict_meaning_label')}\n{claude_result}")
@@ -584,37 +764,6 @@ class TranslationApp(tk.Tk):
         """翻訳履歴ウィンドウを表示"""
         from .history_dialog import show_history_dialog
         show_history_dialog(self)
-
-    def show_vocabulary_window(self):
-        """単語帳ウィンドウを表示"""
-        from .vocabulary_dialog import show_vocabulary_dialog
-        show_vocabulary_dialog(self)
-
-    def add_clipboard_to_vocabulary(self):
-        """クリップボードの単語を単語帳に追加"""
-        if not hasattr(self, 'vocab_manager'):
-            messagebox.showwarning("警告", "単語帳機能が初期化されていません")
-            return
-
-        with clipboard_lock:
-            text = pyperclip.paste()
-
-        if not text:
-            self.log_message(self.get_message('clipboard_empty'))
-            self.update_status('clipboard_empty')
-            return
-
-        source_lang = detect_language(text)
-        target_lang = 'EN' if source_lang == 'JA' else 'JA'
-
-        local_result = check_dictionary(text, source_lang)
-        translated = local_result or ""
-
-        if not translated and self.get_config_bool('Settings', 'use_deepl', True) and is_connected():
-            translated = translate_with_deepl(text, target_lang) or ""
-
-        self.vocab_manager.add_word(text, translated, source_lang, target_lang)
-        messagebox.showinfo("追加完了", f"単語「{text}」を単語帳に追加しました")
 
     def show_help(self):
         """使い方ダイアログを表示"""
@@ -742,6 +891,13 @@ DeepL API とClaude APIを使用して、
                 self.speech_handler.cleanup()
             except Exception as e:
                 print(f"音声出力ハンドラークリーンアップエラー: {e}")
+
+        # 辞書データベースを閉じる
+        try:
+            close_dictionary()
+            print("辞書データベースを閉じました")
+        except Exception as e:
+            print(f"辞書終了エラー: {e}")
 
         try:
             with open(self.config_file, 'w', encoding='utf-8') as f:

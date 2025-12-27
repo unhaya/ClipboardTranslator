@@ -9,7 +9,7 @@ import webbrowser
 import requests
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config.constants import DEEPL_URL, KEY_OPTIONS
+from config.constants import DEEPL_URL, KEY_OPTIONS, DEFAULT_SETTINGS, TUTOR_MODEL_OPTIONS
 from config.settings import config, get_config_file_path
 from core.translation import query_claude_api
 
@@ -57,12 +57,14 @@ def show_settings_dialog(app):
     api_tab = ttk.Frame(tab_control, padding=10)
     shortcut_tab = ttk.Frame(tab_control, padding=10)
     speech_tab = ttk.Frame(tab_control, padding=10)
+    tutor_tab = ttk.Frame(tab_control, padding=10)
     ui_tab = ttk.Frame(tab_control, padding=10)
 
     tab_control.add(translation_tab, text=" 翻訳設定 ")
     tab_control.add(api_tab, text=" API設定 ")
     tab_control.add(shortcut_tab, text=" ショートカット ")
     tab_control.add(speech_tab, text=" 音声設定 ")
+    tab_control.add(tutor_tab, text=" 家庭教師 ")
     tab_control.add(ui_tab, text=" 表示設定 ")
 
     # === 翻訳設定タブ ===
@@ -198,6 +200,82 @@ def show_settings_dialog(app):
 
     speech_volume_var.trace_add("write", update_volume_label)
 
+    # === 家庭教師設定タブ ===
+    tutor_enable_frame = ttk.LabelFrame(tutor_tab, text="家庭教師モード", padding=15)
+    tutor_enable_frame.pack(fill="x", pady=10)
+
+    tutor_enabled_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'tutor_enabled', True))
+    ttk.Checkbutton(tutor_enable_frame, text="家庭教師モードを有効にする",
+                    variable=tutor_enabled_var).pack(anchor="w", pady=5)
+
+    # モデル選択
+    model_frame = ttk.Frame(tutor_enable_frame)
+    model_frame.pack(fill="x", pady=(10, 5))
+    ttk.Label(model_frame, text="使用モデル:").pack(side="left", padx=(0, 10))
+
+    tutor_model_var = tk.StringVar(value=config.get('Settings', 'tutor_model', fallback='sonnet'))
+    model_values = [opt[0] for opt in TUTOR_MODEL_OPTIONS]
+    model_display = {opt[0]: opt[1] for opt in TUTOR_MODEL_OPTIONS}
+    tutor_model_combo = ttk.Combobox(model_frame, textvariable=tutor_model_var,
+                                      values=model_values, width=35, state="readonly")
+    tutor_model_combo.pack(side="left")
+
+    # モデル説明ラベル
+    model_desc_label = ttk.Label(tutor_enable_frame, text=model_display.get(tutor_model_var.get(), ''),
+                                  foreground="#666666")
+    model_desc_label.pack(anchor="w", pady=(0, 5))
+
+    def update_model_desc(*args):
+        model_desc_label.config(text=model_display.get(tutor_model_var.get(), ''))
+
+    tutor_model_var.trace_add("write", update_model_desc)
+
+    # システムプロンプト設定
+    tutor_prompt_frame = ttk.LabelFrame(tutor_tab, text="システムプロンプト", padding=15)
+    tutor_prompt_frame.pack(fill="both", expand=True, pady=10)
+
+    # 会話履歴設定（上部に配置）
+    history_frame = ttk.Frame(tutor_prompt_frame)
+    history_frame.pack(fill="x", pady=(0, 10))
+    ttk.Label(history_frame, text="会話コンテキスト保持数:").pack(side="left", padx=(0, 10))
+
+    tutor_history_var = tk.StringVar(value=config.get('Settings', 'tutor_max_history', fallback='10'))
+    history_options = ["3", "5", "10", "15", "20"]
+    tutor_history_combo = ttk.Combobox(history_frame, textvariable=tutor_history_var,
+                                        values=history_options, width=5, state="readonly")
+    tutor_history_combo.pack(side="left")
+    ttk.Label(history_frame, text="件（直近の会話をAPIに送信）").pack(side="left", padx=(5, 0))
+
+    # プロンプトラベル
+    ttk.Label(tutor_prompt_frame, text="家庭教師の振る舞いを定義するプロンプト:").pack(anchor="w", pady=(0, 5))
+
+    # スクロールバー付きテキストエリア
+    tutor_prompt_container = ttk.Frame(tutor_prompt_frame)
+    tutor_prompt_container.pack(fill="both", expand=True)
+
+    tutor_prompt_scrollbar = ttk.Scrollbar(tutor_prompt_container)
+    tutor_prompt_scrollbar.pack(side="right", fill="y")
+
+    tutor_prompt_text = tk.Text(tutor_prompt_container, width=50, height=10, wrap=tk.WORD,
+                                 yscrollcommand=tutor_prompt_scrollbar.set)
+    tutor_prompt_text.pack(side="left", fill="both", expand=True)
+    tutor_prompt_scrollbar.config(command=tutor_prompt_text.yview)
+
+    default_tutor_prompt = DEFAULT_SETTINGS.get('tutor_system_prompt', '')
+    current_tutor_prompt = config.get('Settings', 'tutor_system_prompt', fallback=default_tutor_prompt)
+    tutor_prompt_text.insert("1.0", current_tutor_prompt)
+
+    # リセットボタン
+    tutor_btn_frame = ttk.Frame(tutor_prompt_frame)
+    tutor_btn_frame.pack(fill="x", pady=(10, 0))
+
+    def reset_tutor_prompt():
+        """プロンプトをデフォルトに戻す"""
+        tutor_prompt_text.delete("1.0", tk.END)
+        tutor_prompt_text.insert("1.0", DEFAULT_SETTINGS.get('tutor_system_prompt', ''))
+
+    ttk.Button(tutor_btn_frame, text="デフォルトに戻す", command=reset_tutor_prompt).pack(side="right")
+
     # === 表示設定タブ ===
     ui_frame = ttk.LabelFrame(ui_tab, text="表示言語設定", padding=15)
     ui_frame.pack(fill="x", pady=10)
@@ -279,6 +357,12 @@ def show_settings_dialog(app):
         config['Settings']['speech_hotkey_alt'] = str(speech_hotkey_alt_var.get())
         config['Settings']['speech_hotkey_shift'] = str(speech_hotkey_shift_var.get())
         config['Settings']['speech_hotkey_key'] = speech_hotkey_key_var.get()
+
+        # 家庭教師設定
+        config['Settings']['tutor_enabled'] = str(tutor_enabled_var.get())
+        config['Settings']['tutor_model'] = tutor_model_var.get()
+        config['Settings']['tutor_system_prompt'] = tutor_prompt_text.get("1.0", tk.END).strip()
+        config['Settings']['tutor_max_history'] = tutor_history_var.get()
 
         try:
             config_file = get_config_file_path()
