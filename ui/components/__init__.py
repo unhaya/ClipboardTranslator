@@ -5,4 +5,6 @@ UIコンポーネントモジュール
 - TextDisplay: テキスト表示エリア (Phase 3-2)
 - ChatPanel: チャットパネル (Phase 3-3)
 """
-# 各Phaseで実装後にimportを追加
+from .status_bar import StatusBar
+
+__all__ = ['StatusBar']

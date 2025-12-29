@@ -22,6 +22,7 @@ from core.tutor import TutorChatHandler
 from .services.clipboard_service import ClipboardService
 from .services.window_service import WindowService
 from .services.hotkey_service import HotkeyService
+from .components.status_bar import StatusBar
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -65,9 +66,9 @@ class TranslationApp(tk.Tk):
 
         # === フッター部分を先にpackする（BOTTOMは先にpackしたものが最下部） ===
 
-        # 状態表示ラベル（最下部）
-        self.status_label = tk.Label(self, text="待機中...", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.status_label.pack(side=tk.BOTTOM, fill=tk.X)
+        # ステータスバー（最下部）
+        self.status_bar = StatusBar(self)
+        self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
         # 会話入力パネルの作成（ステータスバーの上）
         self.create_chat_panel()
@@ -383,7 +384,7 @@ class TranslationApp(tk.Tk):
             else:
                 status_text = "考え中..."
 
-            self.status_label.config(text=status_text)
+            self.status_bar.set_text(status_text)
 
         self.tutor_handler.process_message(
             message,
@@ -434,14 +435,7 @@ class TranslationApp(tk.Tk):
 
     def update_status(self, message_key, duration=3000, **kwargs):
         """ステータスバーのメッセージを更新"""
-        if message_key in MESSAGES['JA'] or message_key in MESSAGES['EN']:
-            message = self.get_message(message_key, **kwargs)
-        else:
-            message = message_key
-
-        self.status_label.config(text=message)
-        waiting_msg = self.get_message('waiting')
-        self.after(duration, lambda: self.status_label.config(text=waiting_msg))
+        self.status_bar.update(message_key, duration, **kwargs)
 
     def update_speech_status(self, message):
         """音声出力の状態を更新する"""
