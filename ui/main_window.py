@@ -25,6 +25,7 @@ from .services.hotkey_service import HotkeyService
 from .components.status_bar import StatusBar
 from .components.text_display import TextDisplay
 from .components.chat_panel import ChatPanel
+from .controllers.translation_controller import TranslationController
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -91,6 +92,15 @@ class TranslationApp(tk.Tk):
 
         # 家庭教師チャットハンドラーを初期化（履歴検索機能付き）
         self.tutor_handler = TutorChatHandler(history_manager=self.history)
+
+        # コントローラーの初期化
+        self.translation_controller = TranslationController(
+            clipboard_service=self.clipboard,
+            history_manager=self.history,
+            on_log=self.log_message,
+            on_status=self.update_status,
+            get_message=self.get_message
+        )
 
         # ウィンドウの閉じるボタン押下時の処理を設定
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -324,68 +334,8 @@ class TranslationApp(tk.Tk):
 
     # 翻訳処理
     def perform_translation(self):
-        """通常の翻訳処理"""
-        with translation_lock:
-            try:
-                text = self.clipboard.get_text()
-
-                if not text:
-                    self.log_message(self.get_message('clipboard_empty'))
-                    self.update_status('clipboard_empty')
-                    return
-
-                max_length = int(config.get('Settings', 'max_translation_length', fallback='1000'))
-                if len(text) > max_length:
-                    self.log_message(f"\n{self.get_message('input_label')}{text[:100]}...")
-                    warning_msg = self.get_message('text_too_long', max_length=max_length)
-                    self.log_message(warning_msg)
-                    self.update_status('text_too_long')
-                    return
-
-                self.log_message(f"\n{self.get_message('input_label')}{text}")
-
-                source_lang = detect_language(text)
-                target_lang = 'EN' if source_lang == 'JA' else 'JA'
-
-                # 履歴から検索 - キャッシュ機能
-                for entry in self.history.history:
-                    if entry['original_text'] == text and entry['source_lang'] == source_lang:
-                        translated = entry['translated_text']
-                        self.log_message(f"{self.get_message('translated_label')} [キャッシュから]\n{translated}")
-                        self.clipboard.set_text(translated)
-                        self.update_status('translation_complete')
-                        return
-
-                # ローカル辞書で翻訳
-                if is_single_word(text):
-                    local_result = check_dictionary(text, source_lang)
-                    if local_result:
-                        self.log_message(f"{self.get_message('translated_label')}\n{local_result}")
-                        self.clipboard.set_text(local_result)
-                        self.update_status('local_dict_used')
-                        self.history.add_entry(text, local_result, source_lang, target_lang, "normal")
-                        return
-
-                # DeepL APIで翻訳
-                use_deepl = self.get_config_bool('Settings', 'use_deepl', True)
-
-                if use_deepl and is_connected():
-                    translated = translate_with_deepl(text, target_lang)
-
-                    if translated:
-                        self.log_message(f"{self.get_message('translated_label')}\n{translated}")
-                        self.clipboard.set_text(translated)
-                        self.update_status('translation_complete')
-                        self.history.add_entry(text, translated, source_lang, target_lang, "normal")
-                    else:
-                        self.update_status('translation_failed')
-                else:
-                    self.update_status('service_disabled')
-
-            except Exception as e:
-                msg = f"{self.get_message('error_occurred')}: {e}"
-                self.log_message(msg)
-                self.update_status('error_occurred')
+        """通常の翻訳処理（TranslationControllerに委譲）"""
+        self.translation_controller.translate()
 
     def perform_dictionary_translation(self):
         """辞書検索処理"""

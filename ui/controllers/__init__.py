@@ -6,4 +6,6 @@
 - SpeechController: 音声出力処理 (Phase 5-3)
 - TutorController: 家庭教師処理 (Phase 5-4)
 """
-# 各Phaseで実装後にimportを追加
+from .translation_controller import TranslationController
+
+__all__ = ['TranslationController']
