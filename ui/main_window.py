@@ -6,7 +6,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import date
 import webbrowser
-from pynput import keyboard
 
 # 親ディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -22,6 +21,7 @@ from core.network import is_connected
 from core.tutor import TutorChatHandler
 from .services.clipboard_service import ClipboardService
 from .services.window_service import WindowService
+from .services.hotkey_service import HotkeyService
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -41,6 +41,7 @@ class TranslationApp(tk.Tk):
         # サービスの初期化
         self.clipboard = ClipboardService()
         self.window_service = WindowService(self)
+        self.hotkey_service = HotkeyService()
 
         # 辞書サイズの初期化
         self.dictionary_size = 0
@@ -113,8 +114,11 @@ class TranslationApp(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # ホットキーリスナーの開始
-        self.hotkey_thread = threading.Thread(target=self.hotkey_listener, daemon=True)
-        self.hotkey_thread.start()
+        self.hotkey_service.start(
+            on_translate=self.hotkey_callback,
+            on_dictionary=self.dict_hotkey_callback,
+            on_speech=self.speech_hotkey_callback
+        )
 
         self.log_message(self.get_message('script_running'))
 
@@ -523,56 +527,7 @@ class TranslationApp(tk.Tk):
         self.text_area.configure(state='disabled')
         self.text_area.see(tk.END)
 
-    # ホットキー関連
-    def _build_hotkey_string(self, key, use_ctrl, use_alt, use_shift):
-        """pynput用のホットキー文字列を構築する"""
-        parts = []
-        if use_ctrl:
-            parts.append('<ctrl>')
-        if use_alt:
-            parts.append('<alt>')
-        if use_shift:
-            parts.append('<shift>')
-        parts.append(key.lower())
-        return '+'.join(parts)
-
-    def hotkey_listener(self):
-        """ホットキーを監視する（pynput版）"""
-        # 設定からホットキーを読み込み
-        hotkey_key = config.get('Settings', 'hotkey_key', fallback='d')
-        dict_hotkey_key = config.get('Settings', 'dict_hotkey_key', fallback='j')
-        speech_hotkey_key = config.get('Settings', 'speech_hotkey_key', fallback='t')
-
-        use_ctrl = self.get_config_bool('Settings', 'hotkey_ctrl', True)
-        use_alt = self.get_config_bool('Settings', 'hotkey_alt', True)
-        use_shift = self.get_config_bool('Settings', 'hotkey_shift', False)
-
-        dict_use_ctrl = self.get_config_bool('Settings', 'dict_hotkey_ctrl', True)
-        dict_use_alt = self.get_config_bool('Settings', 'dict_hotkey_alt', True)
-        dict_use_shift = self.get_config_bool('Settings', 'dict_hotkey_shift', False)
-
-        speech_use_ctrl = self.get_config_bool('Settings', 'speech_hotkey_ctrl', True)
-        speech_use_alt = self.get_config_bool('Settings', 'speech_hotkey_alt', True)
-        speech_use_shift = self.get_config_bool('Settings', 'speech_hotkey_shift', False)
-
-        # ホットキー文字列を構築
-        translate_hotkey = self._build_hotkey_string(hotkey_key, use_ctrl, use_alt, use_shift)
-        dict_hotkey = self._build_hotkey_string(dict_hotkey_key, dict_use_ctrl, dict_use_alt, dict_use_shift)
-        speech_hotkey = self._build_hotkey_string(speech_hotkey_key, speech_use_ctrl, speech_use_alt, speech_use_shift)
-
-        print(f"ホットキー設定: 翻訳={translate_hotkey}, 辞書={dict_hotkey}, 音声={speech_hotkey}")
-
-        # GlobalHotKeysを設定
-        hotkey_map = {
-            translate_hotkey: self.hotkey_callback,
-            dict_hotkey: self.dict_hotkey_callback,
-            speech_hotkey: self.speech_hotkey_callback,
-        }
-
-        self.global_hotkeys = keyboard.GlobalHotKeys(hotkey_map)
-        self.global_hotkeys.start()
-        self.global_hotkeys.join()
-
+    # ホットキーコールバック（HotkeyServiceから呼び出される）
     def hotkey_callback(self):
         """通常の翻訳ホットキーが押されたときの処理"""
         self.update_status("翻訳中...")
@@ -590,10 +545,7 @@ class TranslationApp(tk.Tk):
 
     def restart_hotkey_listener(self):
         """ホットキーリスナーを再起動する"""
-        if hasattr(self, 'global_hotkeys') and self.global_hotkeys:
-            self.global_hotkeys.stop()
-        self.hotkey_thread = threading.Thread(target=self.hotkey_listener, daemon=True)
-        self.hotkey_thread.start()
+        self.hotkey_service.restart()
 
     # 翻訳処理
     def perform_translation(self):

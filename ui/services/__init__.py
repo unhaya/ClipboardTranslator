@@ -7,5 +7,6 @@
 """
 from .clipboard_service import ClipboardService
 from .window_service import WindowService
+from .hotkey_service import HotkeyService
 
-__all__ = ['ClipboardService', 'WindowService']
+__all__ = ['ClipboardService', 'WindowService', 'HotkeyService']
