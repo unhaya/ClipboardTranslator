@@ -21,6 +21,7 @@ from core.history import TranslationHistory
 from core.network import is_connected
 from core.tutor import TutorChatHandler
 from .services.clipboard_service import ClipboardService
+from .services.window_service import WindowService
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -39,6 +40,7 @@ class TranslationApp(tk.Tk):
 
         # サービスの初期化
         self.clipboard = ClipboardService()
+        self.window_service = WindowService(self)
 
         # 辞書サイズの初期化
         self.dictionary_size = 0
@@ -47,7 +49,6 @@ class TranslationApp(tk.Tk):
 
         # 設定の読み込み
         load_config()
-        self.config_file = get_config_file_path()
 
         # 辞書の初期化（SQLiteモード）
         self.init_dictionary()
@@ -848,73 +849,11 @@ DeepL API とClaude APIを使用して、
         tk.Label(about_window, text=about_text, justify=tk.CENTER).pack(expand=True)
         tk.Button(about_window, text="閉じる", command=about_window.destroy).pack(pady=10)
 
-    # ウィンドウ位置の保存/読み込み
-    def save_window_position(self):
-        """ウィンドウの位置とサイズを設定ファイルに保存"""
-        try:
-            x = self.winfo_x()
-            y = self.winfo_y()
-            width = self.winfo_width()
-            height = self.winfo_height()
-
-            if not config.has_section('Window'):
-                config.add_section('Window')
-
-            config.set('Window', 'x', str(x))
-            config.set('Window', 'y', str(y))
-            config.set('Window', 'width', str(width))
-            config.set('Window', 'height', str(height))
-
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                config.write(f)
-
-            print(f"ウィンドウ位置を保存しました: {self.config_file}")
-        except Exception as e:
-            print(f"ウィンドウ位置の保存に失敗しました: {e}")
-
-    def load_window_position(self):
-        """保存されたウィンドウの位置とサイズを読み込み適用"""
-        try:
-            if os.path.exists(self.config_file):
-                config.read(self.config_file, encoding='utf-8')
-
-                if config.has_section('Window'):
-                    x = config.getint('Window', 'x', fallback=100)
-                    y = config.getint('Window', 'y', fallback=100)
-                    width = config.getint('Window', 'width', fallback=300)
-                    height = config.getint('Window', 'height', fallback=400)
-
-                    screen_width = self.winfo_screenwidth()
-                    screen_height = self.winfo_screenheight()
-
-                    if x < 0:
-                        x = 0
-                    elif x > screen_width - 100:
-                        x = screen_width - 300
-
-                    if y < 0:
-                        y = 0
-                    elif y > screen_height - 100:
-                        y = screen_height - 300
-
-                    width = max(300, width)
-                    height = max(400, height)
-
-                    self.geometry(f"{width}x{height}+{x}+{y}")
-                    return True
-
-            self.geometry("300x400")
-            return False
-        except Exception as e:
-            print(f"ウィンドウ位置の読み込みに失敗しました: {e}")
-            self.geometry("300x400")
-            return False
-
     def on_closing(self):
         """アプリケーション終了時の処理"""
         print("=== アプリケーション終了処理開始 ===")
 
-        self.save_window_position()
+        self.window_service.save_position()
 
         if hasattr(self, 'speech_handler') and self.speech_handler:
             try:
@@ -930,7 +869,7 @@ DeepL API とClaude APIを使用して、
             print(f"辞書終了エラー: {e}")
 
         try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
+            with open(self.window_service.config_file, 'w', encoding='utf-8') as f:
                 config.write(f)
         except Exception as e:
             print(f"設定保存エラー: {e}")

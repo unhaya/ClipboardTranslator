@@ -6,5 +6,6 @@
 - HotkeyService: ホットキー管理 (Phase 2-3)
 """
 from .clipboard_service import ClipboardService
+from .window_service import WindowService
 
-__all__ = ['ClipboardService']
+__all__ = ['ClipboardService', 'WindowService']
