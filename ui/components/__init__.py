@@ -7,5 +7,6 @@ UIコンポーネントモジュール
 """
 from .status_bar import StatusBar
 from .text_display import TextDisplay
+from .chat_panel import ChatPanel
 
-__all__ = ['StatusBar', 'TextDisplay']
+__all__ = ['StatusBar', 'TextDisplay', 'ChatPanel']

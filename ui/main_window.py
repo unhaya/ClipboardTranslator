@@ -24,6 +24,7 @@ from .services.window_service import WindowService
 from .services.hotkey_service import HotkeyService
 from .components.status_bar import StatusBar
 from .components.text_display import TextDisplay
+from .components.chat_panel import ChatPanel
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -71,8 +72,9 @@ class TranslationApp(tk.Tk):
         self.status_bar = StatusBar(self)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # 会話入力パネルの作成（ステータスバーの上）
-        self.create_chat_panel()
+        # 会話入力パネル（ステータスバーの上）
+        self.chat_panel = ChatPanel(self, on_send=self._on_chat_send)
+        self.chat_panel.pack(side=tk.BOTTOM, fill=tk.X)
 
         # === メインコンテンツ（残りのスペースを埋める） ===
 
@@ -210,116 +212,9 @@ class TranslationApp(tk.Tk):
         self.config(menu=menu_bar)
         self.menu_bar = menu_bar
 
-    def create_chat_panel(self):
-        """開閉可能な会話入力パネルを作成"""
-        # パネルの表示状態
-        self.chat_panel_visible = False
-
-        # 会話パネルのコンテナ（最初は非表示）
-        self.chat_panel_frame = tk.Frame(self, bg='#2a2a2a')
-
-        # トグルボタン（常に表示）
-        self.chat_toggle_frame = tk.Frame(self, bg='#404040')
-        self.chat_toggle_frame.pack(side=tk.BOTTOM, fill=tk.X)
-
-        self.chat_toggle_btn = tk.Button(
-            self.chat_toggle_frame,
-            text="▲ 質問・相談する",
-            command=self.toggle_chat_panel,
-            bg='#404040',
-            fg='#ffffff',
-            activebackground='#505050',
-            activeforeground='#ffffff',
-            relief=tk.FLAT,
-            cursor='hand2',
-            font=('Yu Gothic UI', 9)
-        )
-        self.chat_toggle_btn.pack(fill=tk.X, pady=2)
-
-        # 入力エリア（パネル内）
-        self.chat_input_frame = tk.Frame(self.chat_panel_frame, bg='#2a2a2a')
-        self.chat_input_frame.pack(fill=tk.X, padx=5, pady=5)
-
-        # 入力テキストボックス（絵文字対応フォント）
-        self.chat_input = tk.Text(
-            self.chat_input_frame,
-            height=2,
-            wrap=tk.WORD,
-            bg='#1e1e1e',
-            fg='#ffffff',
-            insertbackground='#ffffff',
-            font=('Segoe UI Emoji', 10),
-            relief=tk.FLAT,
-            padx=8,
-            pady=5
-        )
-        self.chat_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        self.chat_input.bind('<Return>', self.on_chat_enter)
-        self.chat_input.bind('<Shift-Return>', self.on_chat_newline)
-
-        # 送信ボタン
-        self.chat_send_btn = tk.Button(
-            self.chat_input_frame,
-            text="送信",
-            command=self.send_chat_message,
-            bg='#4a7c59',
-            fg='#ffffff',
-            activebackground='#5a8c69',
-            activeforeground='#ffffff',
-            relief=tk.FLAT,
-            cursor='hand2',
-            font=('Yu Gothic UI', 9),
-            width=6
-        )
-        self.chat_send_btn.pack(side=tk.RIGHT, padx=(5, 0))
-
-        # ヒントラベル
-        self.chat_hint = tk.Label(
-            self.chat_panel_frame,
-            text="「教えて」「質問していい？」などで家庭教師モードが起動します",
-            bg='#2a2a2a',
-            fg='#888888',
-            font=('Yu Gothic UI', 8)
-        )
-        self.chat_hint.pack(anchor=tk.W, padx=8, pady=(0, 5))
-
-    def toggle_chat_panel(self):
-        """会話パネルの表示/非表示を切り替える"""
-        if self.chat_panel_visible:
-            # パネルを非表示
-            self.chat_panel_frame.pack_forget()
-            self.chat_toggle_btn.config(text="▲ 質問・相談する")
-            self.chat_panel_visible = False
-        else:
-            # パネルを表示（トグルボタンの上に）
-            self.chat_panel_frame.pack(side=tk.BOTTOM, fill=tk.X, before=self.chat_toggle_frame)
-            self.chat_toggle_btn.config(text="▼ 閉じる")
-            self.chat_panel_visible = True
-            # 入力欄にフォーカス
-            self.chat_input.focus_set()
-
-    def on_chat_enter(self, event):
-        """Enterキーで送信"""
-        self.send_chat_message()
-        return 'break'  # デフォルトの改行を防止
-
-    def on_chat_newline(self, event):
-        """Shift+Enterで改行"""
-        return None  # デフォルト動作（改行挿入）を許可
-
-    def send_chat_message(self):
-        """チャットメッセージを送信"""
-        message = self.chat_input.get("1.0", tk.END).strip()
-        if not message:
-            return
-
-        # 入力欄をクリア
-        self.chat_input.delete("1.0", tk.END)
-
-        # ユーザーのメッセージを表示
+    def _on_chat_send(self, message: str):
+        """チャットパネルからメッセージが送信されたときの処理"""
         self.log_tutor_message(message, is_user=True)
-
-        # RAG家庭教師処理を実行（別スレッドで）
         self.update_status("考え中...")
         threading.Thread(target=self.process_tutor_message, args=(message,), daemon=True).start()
 
