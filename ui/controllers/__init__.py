@@ -7,5 +7,6 @@
 - TutorController: 家庭教師処理 (Phase 5-4)
 """
 from .translation_controller import TranslationController
+from .dictionary_controller import DictionaryController
 
-__all__ = ['TranslationController']
+__all__ = ['TranslationController', 'DictionaryController']

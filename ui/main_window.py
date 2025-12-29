@@ -26,6 +26,7 @@ from .components.status_bar import StatusBar
 from .components.text_display import TextDisplay
 from .components.chat_panel import ChatPanel
 from .controllers.translation_controller import TranslationController
+from .controllers.dictionary_controller import DictionaryController
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -95,6 +96,13 @@ class TranslationApp(tk.Tk):
 
         # コントローラーの初期化
         self.translation_controller = TranslationController(
+            clipboard_service=self.clipboard,
+            history_manager=self.history,
+            on_log=self.log_message,
+            on_status=self.update_status,
+            get_message=self.get_message
+        )
+        self.dictionary_controller = DictionaryController(
             clipboard_service=self.clipboard,
             history_manager=self.history,
             on_log=self.log_message,
@@ -338,87 +346,8 @@ class TranslationApp(tk.Tk):
         self.translation_controller.translate()
 
     def perform_dictionary_translation(self):
-        """辞書検索処理"""
-        with translation_lock:
-            try:
-                text = self.clipboard.get_text()
-
-                if not text:
-                    self.log_message(self.get_message('clipboard_empty'))
-                    self.update_status('clipboard_empty')
-                    return
-
-                max_length = int(config.get('Settings', 'max_translation_length', fallback='1000'))
-                if len(text) > max_length:
-                    self.log_message(f"\n[Dictionary Lookup] {self.get_message('input_label')}{text[:100]}...")
-                    warning_msg = self.get_message('text_too_long', max_length=max_length)
-                    self.log_message(warning_msg)
-                    self.update_status('text_too_long')
-                    return
-
-                self.log_message(f"\n[Dictionary Lookup] {self.get_message('input_label')}{text}")
-
-                if not is_single_word(text):
-                    self.log_message(self.get_message('dict_only_for_words'))
-                    self.update_status('error_occurred')
-                    return
-
-                source_lang = detect_language(text)
-                target_lang = 'EN' if source_lang == 'JA' else 'JA'
-
-                # 履歴から検索 - キャッシュ機能
-                for entry in self.history.history:
-                    if (entry['original_text'] == text and
-                        entry['source_lang'] == source_lang and
-                        entry['translation_type'] == "dictionary"):
-                        dict_result = entry['translated_text']
-                        self.log_message(f"{self.get_message('dict_meaning_label')} [キャッシュから]\n{dict_result}")
-                        self.update_status('dictionary_lookup_complete')
-                        return
-
-                claude_api_key = config.get('Settings', 'claude_api_key', fallback='')
-                prompt_template = config.get('Settings', 'claude_prompt_template', fallback='')
-
-                # ローカル辞書で検索
-                local_res = check_dictionary(text, source_lang)
-                if local_res:
-                    self.log_message(f"{self.get_message('translated_label')}\n{local_res}")
-                    self.clipboard.set_text(local_res)
-                    self.update_status('local_dict_used')
-                    local_dict_result = local_res
-                else:
-                    local_dict_result = None
-
-                # Claude APIで詳細を取得（辞書検索はHaikuで高速処理）
-                if claude_api_key and prompt_template and is_connected():
-                    self.update_status('translation_in_progress')
-                    claude_result = query_claude_api(text, prompt_template, claude_api_key, model_type='haiku')
-
-                    if claude_result:
-                        self.log_message(f"{self.get_message('dict_meaning_label')}\n{claude_result}")
-                        self.update_status('claude_lookup_complete')
-
-                        if local_dict_result:
-                            combined_result = f"{local_dict_result}\n\n{claude_result}"
-                            self.history.add_entry(text, combined_result, source_lang, target_lang, "dictionary")
-                        else:
-                            self.history.add_entry(text, claude_result, source_lang, target_lang, "dictionary")
-                    else:
-                        if not local_dict_result:
-                            self.log_message(self.get_message('claude_api_error'))
-                            self.update_status('translation_failed')
-                        elif local_dict_result:
-                            self.history.add_entry(text, local_dict_result, source_lang, target_lang, "dictionary")
-                elif local_dict_result:
-                    self.history.add_entry(text, local_dict_result, source_lang, target_lang, "dictionary")
-                else:
-                    self.log_message(self.get_message('service_disabled'))
-                    self.update_status('error_occurred')
-
-            except Exception as e:
-                msg = f"{self.get_message('error_occurred')}: {e}"
-                self.log_message(msg)
-                self.update_status('error_occurred')
+        """辞書検索処理（DictionaryControllerに委譲）"""
+        self.dictionary_controller.lookup()
 
     def perform_speech(self):
         """音声出力処理"""
