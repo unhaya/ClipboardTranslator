@@ -8,5 +8,6 @@
 """
 from .translation_controller import TranslationController
 from .dictionary_controller import DictionaryController
+from .speech_controller import SpeechController
 
-__all__ = ['TranslationController', 'DictionaryController']
+__all__ = ['TranslationController', 'DictionaryController', 'SpeechController']

@@ -27,6 +27,7 @@ from .components.text_display import TextDisplay
 from .components.chat_panel import ChatPanel
 from .controllers.translation_controller import TranslationController
 from .controllers.dictionary_controller import DictionaryController
+from .controllers.speech_controller import SpeechController
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -105,6 +106,13 @@ class TranslationApp(tk.Tk):
         self.dictionary_controller = DictionaryController(
             clipboard_service=self.clipboard,
             history_manager=self.history,
+            on_log=self.log_message,
+            on_status=self.update_status,
+            get_message=self.get_message
+        )
+        self.speech_controller = SpeechController(
+            clipboard_service=self.clipboard,
+            speech_handler=self.speech_handler if hasattr(self, 'speech_handler') else None,
             on_log=self.log_message,
             on_status=self.update_status,
             get_message=self.get_message
@@ -350,46 +358,8 @@ class TranslationApp(tk.Tk):
         self.dictionary_controller.lookup()
 
     def perform_speech(self):
-        """音声出力処理"""
-        if not hasattr(self, 'speech_handler') or self.speech_handler is None:
-            self.log_message("音声出力機能が初期化されていません。")
-            self.update_status('error_occurred')
-            return
-
-        if not self.get_config_bool('Settings', 'use_speech', True):
-            self.log_message("音声出力機能は無効に設定されています。")
-            self.update_status('service_disabled')
-            return
-
-        try:
-            text = self.clipboard.get_text()
-
-            if not text:
-                self.log_message(self.get_message('clipboard_empty'))
-                self.update_status('clipboard_empty')
-                return
-
-            max_length = int(config.get('Settings', 'max_translation_length', fallback='1000'))
-            if len(text) > max_length:
-                self.log_message(f"\n[音声出力] {self.get_message('input_label')}{text[:100]}...")
-                warning_msg = self.get_message('text_too_long', max_length=max_length)
-                self.log_message(warning_msg)
-                self.update_status('text_too_long')
-                return
-
-            self.log_message(f"\n[音声出力] {self.get_message('input_label')}{text}")
-
-            volume = float(config.get('Settings', 'speech_volume', fallback='1.0'))
-            self.update_status("音声出力中...")
-            success = self.speech_handler.speak(text, volume)
-
-            if not success:
-                self.update_status('service_disabled')
-
-        except Exception as e:
-            msg = f"{self.get_message('error_occurred')}: {e}"
-            self.log_message(msg)
-            self.update_status('error_occurred')
+        """音声出力処理（SpeechControllerに委譲）"""
+        self.speech_controller.speak()
 
     # ダイアログ表示
     def show_settings(self):
