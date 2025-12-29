@@ -6,5 +6,6 @@ UIコンポーネントモジュール
 - ChatPanel: チャットパネル (Phase 3-3)
 """
 from .status_bar import StatusBar
+from .text_display import TextDisplay
 
-__all__ = ['StatusBar']
+__all__ = ['StatusBar', 'TextDisplay']

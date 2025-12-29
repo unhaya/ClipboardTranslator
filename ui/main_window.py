@@ -23,6 +23,7 @@ from .services.clipboard_service import ClipboardService
 from .services.window_service import WindowService
 from .services.hotkey_service import HotkeyService
 from .components.status_bar import StatusBar
+from .components.text_display import TextDisplay
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -75,38 +76,16 @@ class TranslationApp(tk.Tk):
 
         # === メインコンテンツ（残りのスペースを埋める） ===
 
-        # テキストエリアの作成
-        # フォント: 絵文字対応 + 日本語読みやすさを考慮
-        # 優先順: Segoe UI Emoji（絵文字）, Yu Gothic UI（日本語）, Meiryo UI（フォールバック）
-        self.text_area = tk.Text(
+        # テキスト表示エリア
+        self.text_display = TextDisplay(
             self,
-            wrap=tk.WORD,
-            bg='#333333',
-            padx=12,
-            pady=8,
-            fg='white',
-            font=('Segoe UI Emoji', 11),
-            spacing1=2,
-            spacing2=8,
-            spacing3=8,
+            on_font_size_change=lambda size: self.update_status('font_size', font_size=size)
         )
-        self.text_area.pack(expand=True, fill=tk.BOTH)
-        self.text_area.configure(state='disabled')
-        self.text_area.bind("<MouseWheel>", self.change_font_size)
-
-        # タグの設定
-        self.text_area.tag_configure('input_tag', foreground='#9597f7')
-        self.text_area.tag_configure('translated_tag', foreground='#9597f7')
-        self.text_area.tag_configure('dict_tag', foreground='#95f797')
-        self.text_area.tag_configure('offline_tag', foreground='#f7d195')
-        self.text_area.tag_configure('error_tag', foreground='#ff6b6b')
-        self.text_area.tag_configure('speech_tag', foreground='#f79595')
-        self.text_area.tag_configure('tutor_user_tag', foreground='#87CEEB')
-        self.text_area.tag_configure('tutor_ai_tag', foreground='#98FB98')
+        self.text_display.pack(expand=True, fill=tk.BOTH)
 
         # 右クリックメニューの設定
         self.create_context_menu()
-        self.text_area.bind("<Button-3>", self.show_context_menu)
+        self.text_display.bind("<Button-3>", self.show_context_menu)
 
         # 家庭教師チャットハンドラーを初期化（履歴検索機能付き）
         self.tutor_handler = TutorChatHandler(history_manager=self.history)
@@ -346,17 +325,7 @@ class TranslationApp(tk.Tk):
 
     def log_tutor_message(self, message, is_user=True):
         """家庭教師モードのメッセージを表示"""
-        self.text_area.configure(state='normal')
-
-        if is_user:
-            self.text_area.insert(tk.END, "\n[あなた] ", 'tutor_user_tag')
-            self.text_area.insert(tk.END, message + "\n")
-        else:
-            self.text_area.insert(tk.END, "\n[先生] ", 'tutor_ai_tag')
-            self.text_area.insert(tk.END, message + "\n")
-
-        self.text_area.configure(state='disabled')
-        self.text_area.see(tk.END)
+        self.text_display.log_tutor_message(message, is_user)
 
     def process_tutor_message(self, message):
         """家庭教師モードのメッセージを処理（TutorChatHandlerに委譲）"""
@@ -406,31 +375,19 @@ class TranslationApp(tk.Tk):
 
     def copy_selected_text(self):
         """選択されたテキストをコピー"""
-        self.text_area.configure(state='normal')
-        try:
-            selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
-            if selected_text:
-                self.clipboard_clear()
-                self.clipboard_append(selected_text)
-                self.update_status('text_copied')
-        except tk.TclError:
+        if self.text_display.copy_selected(self.clipboard_clear, self.clipboard_append):
+            self.update_status('text_copied')
+        else:
             self.update_status('no_text_selected')
-        self.text_area.configure(state='disabled')
 
     def select_all_text(self):
         """テキストをすべて選択"""
-        self.text_area.configure(state='normal')
-        self.text_area.tag_add(tk.SEL, "1.0", tk.END)
-        self.text_area.mark_set(tk.INSERT, "1.0")
-        self.text_area.see(tk.INSERT)
-        self.text_area.configure(state='disabled')
+        self.text_display.select_all()
         self.update_status('all_text_selected')
 
     def clear_text(self):
         """テキストエリアをクリア"""
-        self.text_area.configure(state='normal')
-        self.text_area.delete(1.0, tk.END)
-        self.text_area.configure(state='disabled')
+        self.text_display.clear()
         self.update_status('text_cleared')
 
     def update_status(self, message_key, duration=3000, **kwargs):
@@ -446,80 +403,9 @@ class TranslationApp(tk.Tk):
         self.log_message(f"音声出力エラー: {message}")
         self.update_status('error_occurred')
 
-    def change_font_size(self, event):
-        """フォントサイズを変更（スロットル処理付き：100ms間隔で制限）"""
-        if event.state & 0x0004:
-            import time
-
-            # スロットル: 最後の変更から100ms以内は無視
-            current_time = time.time()
-            if hasattr(self, '_last_font_change_time'):
-                if current_time - self._last_font_change_time < 0.1:  # 100ms
-                    return "break"
-
-            self._last_font_change_time = current_time
-
-            current_font = self.text_area.cget("font")
-            if isinstance(current_font, str):
-                font_parts = current_font.split()
-                font_family = font_parts[0]
-                try:
-                    font_size = int(font_parts[1])
-                except (IndexError, ValueError):
-                    font_size = 11
-            else:
-                font_family = current_font[0] if len(current_font) > 0 else 'Yu Gothic UI'
-                font_size = current_font[1] if len(current_font) > 1 else 11
-
-            new_size = font_size + (1 if event.delta > 0 else -1)
-            if new_size < 8:
-                new_size = 8
-            elif new_size > 24:
-                new_size = 24
-
-            new_font = (font_family, new_size)
-            self.text_area.config(font=new_font)
-            self.update_status('font_size', font_size=new_size)
-            return "break"
-
     def log_message(self, message):
         """ログメッセージをテキストエリアに表示"""
-        self.text_area.configure(state='normal')
-
-        input_label = self.get_message('input_label')
-        translated_label = self.get_message('translated_label')
-        dict_meaning_label = self.get_message('dict_meaning_label')
-        local_dict_label = self.get_message('local_dict_label')
-        claude_api_error = self.get_message('claude_api_error')
-
-        if claude_api_error in message or ("API" in message and ("エラー" in message or "error" in message.lower())):
-            self.text_area.insert(tk.END, message, 'error_tag')
-        elif input_label in message:
-            parts = message.split(input_label, 1)
-            self.text_area.insert(tk.END, parts[0])
-            self.text_area.insert(tk.END, input_label, 'input_tag')
-            self.text_area.insert(tk.END, parts[1] if len(parts) > 1 else "")
-        elif translated_label in message:
-            parts = message.split(translated_label, 1)
-            self.text_area.insert(tk.END, parts[0])
-            self.text_area.insert(tk.END, translated_label, 'translated_tag')
-            self.text_area.insert(tk.END, parts[1] if len(parts) > 1 else "")
-        elif dict_meaning_label in message:
-            parts = message.split(dict_meaning_label, 1)
-            self.text_area.insert(tk.END, parts[0])
-            self.text_area.insert(tk.END, dict_meaning_label, 'dict_tag')
-            self.text_area.insert(tk.END, parts[1] if len(parts) > 1 else "")
-        elif local_dict_label in message:
-            parts = message.split(local_dict_label, 1)
-            self.text_area.insert(tk.END, parts[0])
-            self.text_area.insert(tk.END, local_dict_label, 'offline_tag')
-            self.text_area.insert(tk.END, parts[1] if len(parts) > 1 else "")
-        else:
-            self.text_area.insert(tk.END, message)
-
-        self.text_area.insert(tk.END, '\n')
-        self.text_area.configure(state='disabled')
-        self.text_area.see(tk.END)
+        self.text_display.log_message(message)
 
     # ホットキーコールバック（HotkeyServiceから呼び出される）
     def hotkey_callback(self):
