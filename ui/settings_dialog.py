@@ -1,4 +1,4 @@
-# ClipboardTranslator v1.00 - Settings Dialog
+# ClipboardTranslator v1.10 - Settings Dialog
 import os
 import sys
 import re
@@ -14,11 +14,20 @@ from config.settings import config, get_config_file_path
 from core.translation import query_claude_api
 
 
+def _center_window(window, width, height):
+    """ウィンドウをモニター中央に配置"""
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+    window.geometry(f"{width}x{height}+{x}+{y}")
+
+
 def show_settings_dialog(app):
     """設定ダイアログを表示"""
     settings_window = tk.Toplevel(app)
     settings_window.title("設定")
-    settings_window.geometry("550x550")
+    _center_window(settings_window, 550, 550)
     settings_window.minsize(550, 520)
     settings_window.resizable(True, True)
     settings_window.transient(app)

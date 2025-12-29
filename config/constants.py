@@ -1,4 +1,4 @@
-# ClipboardTranslator v1.00 - Constants
+# ClipboardTranslator v1.10 - Constants
 # 定数定義
 
 # API Endpoints
@@ -147,5 +147,5 @@ KEY_OPTIONS = [
 ]
 
 # Version Info
-VERSION = "1.0"
+VERSION = "1.10"
 APP_TITLE = "ClipTrans"

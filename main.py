@@ -90,7 +90,7 @@ def main():
         app = TranslationApp()
 
         # ウィンドウ位置を読み込み
-        app.load_window_position()
+        app.window_service.load_position()
 
         # メインループ開始
         app.mainloop()

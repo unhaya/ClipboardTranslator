@@ -340,11 +340,19 @@ class TranslationApp(tk.Tk):
         from .history_dialog import show_history_dialog
         show_history_dialog(self)
 
+    def _center_window(self, window, width, height):
+        """ウィンドウをモニター中央に配置"""
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        window.geometry(f"{width}x{height}+{x}+{y}")
+
     def show_help(self):
         """使い方ダイアログを表示"""
         help_window = tk.Toplevel(self)
         help_window.title("使い方")
-        help_window.geometry("400x400")
+        self._center_window(help_window, 400, 480)
         help_window.transient(self)
 
         help_text = """
@@ -362,6 +370,10 @@ class TranslationApp(tk.Tk):
 1. テキストを音声出力するには Ctrl+Alt+T を押す
 2. この機能を使うには gTTS と pygame モジュールが必要です
 
+家庭教師機能:
+1. 画面下部の「▲ 質問・相談する」をクリック
+2. 翻訳履歴を参考に質問に回答してくれます
+
 その他:
 - Ctrl+マウスホイール: フォントサイズの変更
         """
@@ -377,7 +389,7 @@ class TranslationApp(tk.Tk):
         """バージョン情報ダイアログを表示"""
         about_window = tk.Toplevel(self)
         about_window.title("バージョン情報")
-        about_window.geometry("300x200")
+        self._center_window(about_window, 300, 200)
         about_window.resizable(False, False)
         about_window.transient(self)
 

@@ -1,13 +1,22 @@
-# ClipboardTranslator v1.00 - History Dialog
+# ClipboardTranslator v1.10 - History Dialog
 import tkinter as tk
 from tkinter import ttk, messagebox
+
+
+def _center_window(window, width, height):
+    """ウィンドウをモニター中央に配置"""
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+    window.geometry(f"{width}x{height}+{x}+{y}")
 
 
 def show_history_dialog(app):
     """翻訳履歴ダイアログを表示"""
     history_window = tk.Toplevel(app)
     history_window.title("翻訳履歴")
-    history_window.geometry("600x500")
+    _center_window(history_window, 600, 500)
     history_window.minsize(500, 400)
     history_window.transient(app)
     history_window.grab_set()
