@@ -5,4 +5,6 @@
 - WindowService: ウィンドウ位置管理 (Phase 2-2)
 - HotkeyService: ホットキー管理 (Phase 2-3)
 """
-# 各Phaseで実装後にimportを追加
+from .clipboard_service import ClipboardService
+
+__all__ = ['ClipboardService']

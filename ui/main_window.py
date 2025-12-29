@@ -1,4 +1,4 @@
-# ClipboardTranslator v1.00 - Main Window
+# ClipboardTranslator v1.10 - Main Window
 import os
 import sys
 import threading
@@ -6,7 +6,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import date
 import webbrowser
-import pyperclip
 from pynput import keyboard
 
 # 親ディレクトリをパスに追加
@@ -21,10 +20,10 @@ from core.text_to_speech import TextToSpeechHandler
 from core.history import TranslationHistory
 from core.network import is_connected
 from core.tutor import TutorChatHandler
+from .services.clipboard_service import ClipboardService
 
 # スレッドロック
 translation_lock = threading.Lock()
-clipboard_lock = threading.Lock()
 
 
 class TranslationApp(tk.Tk):
@@ -37,6 +36,9 @@ class TranslationApp(tk.Tk):
 
         # ウィンドウアイコンを設定
         self.set_window_icon()
+
+        # サービスの初期化
+        self.clipboard = ClipboardService()
 
         # 辞書サイズの初期化
         self.dictionary_size = 0
@@ -597,8 +599,7 @@ class TranslationApp(tk.Tk):
         """通常の翻訳処理"""
         with translation_lock:
             try:
-                with clipboard_lock:
-                    text = pyperclip.paste()
+                text = self.clipboard.get_text()
 
                 if not text:
                     self.log_message(self.get_message('clipboard_empty'))
@@ -623,8 +624,7 @@ class TranslationApp(tk.Tk):
                     if entry['original_text'] == text and entry['source_lang'] == source_lang:
                         translated = entry['translated_text']
                         self.log_message(f"{self.get_message('translated_label')} [キャッシュから]\n{translated}")
-                        with clipboard_lock:
-                            pyperclip.copy(translated)
+                        self.clipboard.set_text(translated)
                         self.update_status('translation_complete')
                         return
 
@@ -633,8 +633,7 @@ class TranslationApp(tk.Tk):
                     local_result = check_dictionary(text, source_lang)
                     if local_result:
                         self.log_message(f"{self.get_message('translated_label')}\n{local_result}")
-                        with clipboard_lock:
-                            pyperclip.copy(local_result)
+                        self.clipboard.set_text(local_result)
                         self.update_status('local_dict_used')
                         self.history.add_entry(text, local_result, source_lang, target_lang, "normal")
                         return
@@ -647,8 +646,7 @@ class TranslationApp(tk.Tk):
 
                     if translated:
                         self.log_message(f"{self.get_message('translated_label')}\n{translated}")
-                        with clipboard_lock:
-                            pyperclip.copy(translated)
+                        self.clipboard.set_text(translated)
                         self.update_status('translation_complete')
                         self.history.add_entry(text, translated, source_lang, target_lang, "normal")
                     else:
@@ -665,8 +663,7 @@ class TranslationApp(tk.Tk):
         """辞書検索処理"""
         with translation_lock:
             try:
-                with clipboard_lock:
-                    text = pyperclip.paste()
+                text = self.clipboard.get_text()
 
                 if not text:
                     self.log_message(self.get_message('clipboard_empty'))
@@ -708,8 +705,7 @@ class TranslationApp(tk.Tk):
                 local_res = check_dictionary(text, source_lang)
                 if local_res:
                     self.log_message(f"{self.get_message('translated_label')}\n{local_res}")
-                    with clipboard_lock:
-                        pyperclip.copy(local_res)
+                    self.clipboard.set_text(local_res)
                     self.update_status('local_dict_used')
                     local_dict_result = local_res
                 else:
@@ -759,8 +755,7 @@ class TranslationApp(tk.Tk):
             return
 
         try:
-            with clipboard_lock:
-                text = pyperclip.paste()
+            text = self.clipboard.get_text()
 
             if not text:
                 self.log_message(self.get_message('clipboard_empty'))
