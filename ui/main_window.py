@@ -1,23 +1,22 @@
 # ClipboardTranslator v1.10 - Main Window
+"""
+リファクタリング後のメインウィンドウ
+- 908行 → 425行（約53%削減）
+- サービス、コンポーネント、コントローラーに分離
+"""
 import os
 import sys
 import threading
 import tkinter as tk
-from tkinter import ttk, messagebox
-from datetime import date
-import webbrowser
 
 # 親ディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config.constants import MESSAGES, VERSION, APP_TITLE
-from config.settings import ConfigManager, config, load_config, get_config_file_path
-from core.translation import translate_with_deepl, query_claude_api
-from core.dictionary import check_dictionary, init_dictionaries, close_dictionary
-from core.language_detection import detect_language, is_single_word
+from config.settings import config, load_config
+from core.dictionary import init_dictionaries, close_dictionary
 from core.text_to_speech import TextToSpeechHandler
 from core.history import TranslationHistory
-from core.network import is_connected
 from core.tutor import TutorChatHandler
 from .services.clipboard_service import ClipboardService
 from .services.window_service import WindowService
@@ -29,9 +28,6 @@ from .controllers.translation_controller import TranslationController
 from .controllers.dictionary_controller import DictionaryController
 from .controllers.speech_controller import SpeechController
 from .controllers.tutor_controller import TutorController
-
-# スレッドロック
-translation_lock = threading.Lock()
 
 
 class TranslationApp(tk.Tk):
