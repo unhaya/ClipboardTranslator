@@ -71,14 +71,16 @@ class TranslationApp(tk.Tk):
         # === メインコンテンツ（残りのスペースを埋める） ===
 
         # テキストエリアの作成
+        # フォント: 絵文字対応 + 日本語読みやすさを考慮
+        # 優先順: Segoe UI Emoji（絵文字）, Yu Gothic UI（日本語）, Meiryo UI（フォールバック）
         self.text_area = tk.Text(
             self,
             wrap=tk.WORD,
             bg='#333333',
-            padx=8,
+            padx=12,
             pady=8,
             fg='white',
-            font=('Serif', 11),
+            font=('Segoe UI Emoji', 11),
             spacing1=2,
             spacing2=8,
             spacing3=8,
@@ -251,7 +253,7 @@ class TranslationApp(tk.Tk):
         self.chat_input_frame = tk.Frame(self.chat_panel_frame, bg='#2a2a2a')
         self.chat_input_frame.pack(fill=tk.X, padx=5, pady=5)
 
-        # 入力テキストボックス
+        # 入力テキストボックス（絵文字対応フォント）
         self.chat_input = tk.Text(
             self.chat_input_frame,
             height=2,
@@ -259,7 +261,7 @@ class TranslationApp(tk.Tk):
             bg='#1e1e1e',
             fg='#ffffff',
             insertbackground='#ffffff',
-            font=('Yu Gothic UI', 10),
+            font=('Segoe UI Emoji', 10),
             relief=tk.FLAT,
             padx=8,
             pady=5
@@ -358,7 +360,30 @@ class TranslationApp(tk.Tk):
             self.log_tutor_message(error_msg, is_user=False)
             self.update_status('error_occurred')
 
-        self.tutor_handler.process_message(message, on_success=on_success, on_error=on_error)
+        def on_search_info(metadata):
+            """検索情報をステータスに表示"""
+            count = metadata.get('count', 0)
+            dates = metadata.get('dates', [])
+
+            if count > 0 and dates:
+                # 最新の日付を表示
+                date_str = ', '.join(dates[:2])  # 最大2つの日付
+                if len(dates) > 2:
+                    date_str += '等'
+                status_text = f"履歴{count}件を参照中 ({date_str})"
+            elif count > 0:
+                status_text = f"履歴{count}件を参照中..."
+            else:
+                status_text = "考え中..."
+
+            self.status_label.config(text=status_text)
+
+        self.tutor_handler.process_message(
+            message,
+            on_success=on_success,
+            on_error=on_error,
+            on_search_info=on_search_info
+        )
 
     def create_context_menu(self):
         """右クリックメニューの作成"""
@@ -421,8 +446,18 @@ class TranslationApp(tk.Tk):
         self.update_status('error_occurred')
 
     def change_font_size(self, event):
-        """フォントサイズを変更"""
+        """フォントサイズを変更（スロットル処理付き：100ms間隔で制限）"""
         if event.state & 0x0004:
+            import time
+
+            # スロットル: 最後の変更から100ms以内は無視
+            current_time = time.time()
+            if hasattr(self, '_last_font_change_time'):
+                if current_time - self._last_font_change_time < 0.1:  # 100ms
+                    return "break"
+
+            self._last_font_change_time = current_time
+
             current_font = self.text_area.cget("font")
             if isinstance(current_font, str):
                 font_parts = current_font.split()
@@ -432,7 +467,7 @@ class TranslationApp(tk.Tk):
                 except (IndexError, ValueError):
                     font_size = 11
             else:
-                font_family = current_font[0] if len(current_font) > 0 else 'Serif'
+                font_family = current_font[0] if len(current_font) > 0 else 'Yu Gothic UI'
                 font_size = current_font[1] if len(current_font) > 1 else 11
 
             new_size = font_size + (1 if event.delta > 0 else -1)

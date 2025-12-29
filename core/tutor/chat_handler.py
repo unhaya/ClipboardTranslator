@@ -2,14 +2,14 @@
 """
 家庭教師モードのチャット処理を担当するモジュール
 - 会話履歴管理（ハイブリッド方式）
-- トピック抽出
+- トピック抽出（形態素解析対応）
 - コンテキスト構築
-- 翻訳履歴検索連携
+- 高精度履歴検索（BM25 + 時間的重み付け）
 """
-import re
 from config.settings import config
 from core.translation import query_claude_api
 from core.network import is_connected
+from .search import SmartHistorySearcher, extract_keywords
 
 
 class TutorChatHandler:
@@ -25,10 +25,12 @@ class TutorChatHandler:
         self.conversation_history = []
         self.topics = []  # 過去の話題キーワード
         self.history_manager = history_manager
+        self.searcher = SmartHistorySearcher(recency_weight=0.3, decay_days=30)
+        self._last_history_count = 0  # 履歴の変更検知用
 
     def extract_topics_from_message(self, message):
         """
-        メッセージからトピックキーワードを抽出（ローカル処理）
+        メッセージからトピックキーワードを抽出（形態素解析対応）
 
         Parameters:
         message (str): メッセージテキスト
@@ -36,51 +38,67 @@ class TutorChatHandler:
         Returns:
         list: 抽出されたキーワードのリスト（最大5個）
         """
-        # 英単語を抽出（3文字以上）
-        english_words = re.findall(r'\b[a-zA-Z]{3,}\b', message)
-        # 日本語のキーワード（カタカナ語、漢字を含む単語）
-        japanese_keywords = re.findall(r'[ァ-ヶー]{2,}|[一-龥]{2,}', message)
-        return list(set(english_words + japanese_keywords))[:5]
+        return extract_keywords(message, max_keywords=5)
+
+    def _refresh_searcher_if_needed(self):
+        """履歴が更新されていればSearcherを再学習"""
+        if not self.history_manager:
+            return
+
+        try:
+            # 全履歴を取得
+            all_history = self.history_manager.get_history()
+            current_count = len(all_history) if all_history else 0
+
+            # 履歴が変更されていれば再学習
+            if current_count != self._last_history_count:
+                self.searcher.fit(all_history)
+                self._last_history_count = current_count
+        except Exception as e:
+            print(f"Searcher更新エラー: {e}")
 
     def search_relevant_history(self, message, max_results=3):
         """
-        ユーザーのメッセージに関連する翻訳履歴を検索
+        ユーザーのメッセージに関連する翻訳履歴を検索（BM25 + 時間的重み付け）
 
         Parameters:
         message (str): ユーザーのメッセージ
         max_results (int): 最大取得件数
 
         Returns:
-        list: 関連する履歴エントリのリスト
+        tuple: (関連する履歴エントリのリスト, 検索メタデータ)
+               メタデータ: {'count': int, 'dates': list[str]}
         """
         if not self.history_manager:
-            return []
+            return [], {'count': 0, 'dates': []}
 
-        # メッセージからキーワードを抽出
-        keywords = self.extract_topics_from_message(message)
-        if not keywords:
-            return []
+        # Searcherを最新状態に更新
+        self._refresh_searcher_if_needed()
 
-        relevant_entries = []
-        seen_texts = set()
+        # BM25 + 時間的重み付けで検索
+        results = self.searcher.search(message, top_k=max_results)
 
-        # 各キーワードで履歴を検索
-        for keyword in keywords:
-            results = self.history_manager.search_history(keyword)
-            for entry in results:
-                # 重複を避ける
-                text_key = entry.get('original_text', '')
-                if text_key not in seen_texts:
-                    seen_texts.add(text_key)
-                    relevant_entries.append(entry)
+        # メタデータを構築
+        metadata = {
+            'count': len(results),
+            'dates': []
+        }
 
-                    if len(relevant_entries) >= max_results:
-                        break
+        for entry in results:
+            timestamp = entry.get('timestamp', '')
+            if timestamp:
+                # YYYY-MM-DD HH:MM:SS から MM/DD を抽出
+                try:
+                    date_part = timestamp.split(' ')[0]  # YYYY-MM-DD
+                    parts = date_part.split('-')
+                    if len(parts) == 3:
+                        formatted_date = f"{int(parts[1])}/{int(parts[2])}"
+                        if formatted_date not in metadata['dates']:
+                            metadata['dates'].append(formatted_date)
+                except (ValueError, IndexError):
+                    pass
 
-            if len(relevant_entries) >= max_results:
-                break
-
-        return relevant_entries
+        return results, metadata
 
     def build_context(self, user_message, max_recent=3):
         """
@@ -94,9 +112,10 @@ class TutorChatHandler:
         max_recent (int): 直近の会話履歴数
 
         Returns:
-        str: 構築されたコンテキスト文字列
+        tuple: (構築されたコンテキスト文字列, 検索メタデータ)
         """
         context_parts = []
+        search_metadata = {'count': 0, 'dates': []}
 
         # 1. 過去の話題キーワード
         if self.topics:
@@ -104,7 +123,7 @@ class TutorChatHandler:
             context_parts.append(f"過去の話題: {', '.join(unique_topics)}")
 
         # 2. 関連する翻訳履歴
-        relevant_history = self.search_relevant_history(user_message)
+        relevant_history, search_metadata = self.search_relevant_history(user_message)
         if relevant_history:
             context_parts.append("\n関連する学習履歴:")
             for entry in relevant_history:
@@ -125,7 +144,7 @@ class TutorChatHandler:
                 content = entry['content'][:200] + "..." if len(entry['content']) > 200 else entry['content']
                 context_parts.append(f"{role_label}: {content}")
 
-        return "\n".join(context_parts)
+        return "\n".join(context_parts), search_metadata
 
     def add_to_history(self, role, content):
         """
@@ -156,7 +175,7 @@ class TutorChatHandler:
         if len(self.topics) > 30:
             self.topics = self.topics[-30:]
 
-    def process_message(self, message, on_success=None, on_error=None):
+    def process_message(self, message, on_success=None, on_error=None, on_search_info=None):
         """
         家庭教師モードのメッセージを処理
 
@@ -164,6 +183,8 @@ class TutorChatHandler:
         message (str): ユーザーのメッセージ
         on_success (callable): 成功時のコールバック(response)
         on_error (callable): エラー時のコールバック(error_message)
+        on_search_info (callable): 検索情報コールバック(metadata)
+                                   metadata: {'count': int, 'dates': list[str]}
 
         Returns:
         str or None: 応答テキスト、エラーの場合はNone
@@ -201,7 +222,11 @@ class TutorChatHandler:
             # ハイブリッド方式でコンテキストを構築
             max_recent = int(config.get('Settings', 'tutor_max_history', fallback='10')) // 3
             max_recent = max(1, min(max_recent, 5))  # 1-5の範囲
-            context = self.build_context(message, max_recent=max_recent)
+            context, search_metadata = self.build_context(message, max_recent=max_recent)
+
+            # 検索情報をコールバックで通知
+            if on_search_info:
+                on_search_info(search_metadata)
 
             # プロンプトを構築
             if context:
