@@ -28,6 +28,7 @@ from .components.chat_panel import ChatPanel
 from .controllers.translation_controller import TranslationController
 from .controllers.dictionary_controller import DictionaryController
 from .controllers.speech_controller import SpeechController
+from .controllers.tutor_controller import TutorController
 
 # スレッドロック
 translation_lock = threading.Lock()
@@ -116,6 +117,12 @@ class TranslationApp(tk.Tk):
             on_log=self.log_message,
             on_status=self.update_status,
             get_message=self.get_message
+        )
+        self.tutor_controller = TutorController(
+            tutor_handler=self.tutor_handler,
+            on_log_tutor=self.log_tutor_message,
+            on_status=self.update_status,
+            on_status_text=self.status_bar.set_text
         )
 
         # ウィンドウの閉じるボタン押下時の処理を設定
@@ -242,46 +249,11 @@ class TranslationApp(tk.Tk):
         """チャットパネルからメッセージが送信されたときの処理"""
         self.log_tutor_message(message, is_user=True)
         self.update_status("考え中...")
-        threading.Thread(target=self.process_tutor_message, args=(message,), daemon=True).start()
+        threading.Thread(target=self.tutor_controller.process_message, args=(message,), daemon=True).start()
 
     def log_tutor_message(self, message, is_user=True):
         """家庭教師モードのメッセージを表示"""
         self.text_display.log_tutor_message(message, is_user)
-
-    def process_tutor_message(self, message):
-        """家庭教師モードのメッセージを処理（TutorChatHandlerに委譲）"""
-        def on_success(response):
-            self.log_tutor_message(response, is_user=False)
-            self.update_status('待機中...')
-
-        def on_error(error_msg):
-            self.log_tutor_message(error_msg, is_user=False)
-            self.update_status('error_occurred')
-
-        def on_search_info(metadata):
-            """検索情報をステータスに表示"""
-            count = metadata.get('count', 0)
-            dates = metadata.get('dates', [])
-
-            if count > 0 and dates:
-                # 最新の日付を表示
-                date_str = ', '.join(dates[:2])  # 最大2つの日付
-                if len(dates) > 2:
-                    date_str += '等'
-                status_text = f"履歴{count}件を参照中 ({date_str})"
-            elif count > 0:
-                status_text = f"履歴{count}件を参照中..."
-            else:
-                status_text = "考え中..."
-
-            self.status_bar.set_text(status_text)
-
-        self.tutor_handler.process_message(
-            message,
-            on_success=on_success,
-            on_error=on_error,
-            on_search_info=on_search_info
-        )
 
     def create_context_menu(self):
         """右クリックメニューの作成"""

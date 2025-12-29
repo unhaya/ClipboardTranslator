@@ -9,5 +9,6 @@
 from .translation_controller import TranslationController
 from .dictionary_controller import DictionaryController
 from .speech_controller import SpeechController
+from .tutor_controller import TutorController
 
-__all__ = ['TranslationController', 'DictionaryController', 'SpeechController']
+__all__ = ['TranslationController', 'DictionaryController', 'SpeechController', 'TutorController']
