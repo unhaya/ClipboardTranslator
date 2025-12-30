@@ -1,4 +1,4 @@
-# ClipTrans - AI-Powered Clipboard Translation Assistant
+# ClipTrans - Multilingual Input Assistant for Real-Time Communication
 
 <div align="center">
 
@@ -7,17 +7,58 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-Custom-orange.svg)
 
-**Instant translation, dictionary lookup, and pronunciation - all with a single hotkey**
+**Type in your language. Send in theirs. Instantly.**
 
-[Features](#-features) | [Quick Start](#-quick-start) | [Usage](#-usage) | [AI Tutor Mode](#-ai-tutor-mode) | [Settings](#%EF%B8%8F-settings)
+ClipTrans is not a translation app - it is a **real-time multilingual input assistant**.
+
+[Why ClipTrans?](#why-cliptrans) | [Key Features](#key-features) | [Quick Start](#quick-start) | [AI Tutor Mode](#ai-tutor-mode) | [Settings](#settings)
 
 </div>
 
 ---
 
-## Multilingual UI Support
+## Why ClipTrans?
 
-ClipTrans now supports **9 languages** for the user interface:
+Most translation apps are designed for **reading** translated text.
+
+ClipTrans is designed for something different:
+
+**Sending messages to people who speak another language - without changing how you type.**
+
+Whether you are chatting on Slack, Discord, Teams, in online games, or on social platforms,
+ClipTrans turns translation into an **input operation**, not an output destination.
+
+| Traditional Translation Apps | ClipTrans |
+|------------------------------|-----------|
+| Read translated text | Type in your native language |
+| Copy & paste manually | Press a hotkey |
+| Switch windows | Paste and send immediately |
+| Break conversation flow | Stay in the conversation |
+
+**Translation is not the goal. Communication is.**
+
+---
+
+## Designed for Real-Time Conversations
+
+ClipTrans is optimized for situations where speed matters:
+
+- Chatting with overseas teammates
+- Responding to international customers
+- Talking with players in global game servers
+- Participating in foreign-language communities
+
+The translated text is automatically placed in your clipboard, ready to paste and send instantly.
+
+- No extra windows.
+- No thinking in a foreign language.
+- No disruption to your workflow.
+
+---
+
+## Supported Languages
+
+ClipTrans supports multilingual input and UI localization, enabling conversations across regions.
 
 | Language | Code |
 |----------|------|
@@ -31,53 +72,60 @@ ClipTrans now supports **9 languages** for the user interface:
 | Portuguese (Portugues) | PT-BR |
 | Russian (Русский) | RU |
 
-All menus, dialogs, status messages, and default prompts automatically switch to your selected language.
+You can type in any supported language and communicate instantly with users of another.
 
 ---
 
-## Common Challenges
+## Key Features
 
-- Reading **English documents or papers** and constantly switching to translation sites for unknown words...
-- Using **foreign software or games** and tediously copy-pasting for translations...
-- **Studying languages** and wanting to know not just meanings but also etymology and usage...
-- Wanting to **check pronunciation** but opening another site is too much hassle...
+### Multilingual Input Translation
 
-### ClipTrans solves all of these!
+- **One hotkey** to translate your input text (default: `Ctrl+Alt+D`)
+- Translation optimized for **sending**, not reading
+- **Clipboard is automatically replaced** with translated text
+- Paste and send immediately in any app
 
-Select text, press `Ctrl+C` to copy, then hit the hotkey. **Translation in just 2 seconds**.
+### Background Operation
 
----
-
-## Features
-
-### Instant Translation
-- **One hotkey** for immediate translation (default: `Ctrl+Alt+D`)
-- **High-accuracy translation** powered by DeepL API
-- **Seamless clipboard replacement** - Translation results automatically replace clipboard content, ready to paste immediately with `Ctrl+V`
-- **Works in the background** - No need to switch to ClipTrans window. Hotkeys work system-wide from any application
-- **Visual feedback** - A "Done!" popup appears near your cursor when translation completes
+- Works **system-wide** with global hotkeys
+- No need to switch windows
+- **Visual confirmation** near the cursor when translation completes
 - **Smart caching** - Previously translated text is retrieved instantly without API calls
 
-> **What makes ClipTrans different?**
-> Unlike browser-based translators that require switching windows and manual copy-paste, ClipTrans runs quietly in the background and responds to global hotkeys. While you're working in Word, browsing the web, or playing a game - just copy text and press the hotkey. Your clipboard is instantly replaced with the translation, ready to paste. No window switching, no extra steps.
+### AI Dictionary & Learning Support
 
-### AI Dictionary
-- **Detailed word explanations** powered by Claude AI
-- **Memorable learning** through etymology, prefix, and suffix breakdown
-- Learn synonyms and antonyms together
+- **Context-aware word explanations** powered by Claude AI
+- Etymology, prefixes, suffixes, synonyms, and antonyms
+- Designed to improve future input quality
 
 ### Text-to-Speech
+
 - **One-touch pronunciation** check with native speakers
 - Perfect for language learning and listening practice
 
-### AI Tutor Mode
-- Your personal **AI learning partner**
-- **Personalized guidance** based on your learning history
-- **High-precision context understanding** using BM25 algorithm
+### AI Tutor Mode (Optional)
 
-### Learning History Management
-- **Automatic saving** of all translation history
-- **Instant review** of past learning through keyword search
+- **Personalized learning assistant**
+- Remembers your past translations
+- Uses **BM25 + recency weighting** to recall relevant history
+- Helps you communicate better over time, not just translate
+
+---
+
+## Philosophy
+
+ClipTrans treats translation as an **invisible infrastructure**, not a destination.
+
+You should not need to:
+- Think about grammar while chatting
+- Switch tools mid-conversation
+- Copy text back and forth
+
+You should only need to:
+
+**Type -> Translate -> Paste -> Send**
+
+That is the core design principle of ClipTrans.
 
 ---
 
