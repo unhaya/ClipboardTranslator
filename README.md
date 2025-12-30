@@ -115,10 +115,37 @@ You can type in any supported language and communicate instantly with users of a
 
 ---
 
-## Philosophy
+## More Than Fast Translation
 
-ClipTrans was created from environments where there was no time to "use a translation app."
-It is built for real-time communication, where sending a response matters more than reading one.
+ClipTrans is fast — but speed alone is not the goal.
+
+In everyday use, ClipTrans acts as a personal tutor and dictionary:
+
+- Learn words and expressions in context
+- Understand meanings, usage, and structure
+- Check pronunciation instantly with text-to-speech
+- Build long-term language intuition while working
+
+Because AI is built into the system, ClipTrans adapts beyond fixed dictionaries:
+
+- Professional and technical domains
+- Emerging industries
+- New terminology and evolving language use
+- Multiple language pairs without redesign
+
+And when it matters most, ClipTrans becomes something else entirely:
+
+**An input-focused translation tool that is simply fast.**
+
+Type, translate, paste, send — without friction.
+
+*Learning when you have time. Instant communication when you do not.*
+
+That balance is what defines ClipTrans.
+
+---
+
+## Philosophy
 
 ClipTrans treats translation as an **invisible infrastructure**, not a destination.
 
@@ -127,11 +154,7 @@ You should not need to:
 - Switch tools mid-conversation
 - Copy text back and forth
 
-You should only need to:
-
-**Type -> Translate -> Paste -> Send**
-
-That is the core design principle of ClipTrans.
+Translation should disappear into the workflow — that is the core design principle of ClipTrans.
 
 ---
 
