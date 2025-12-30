@@ -9,7 +9,7 @@
 
 **Type in your language. Send in theirs. Instantly.**
 
-*The world's simplest input-focused translation tool — designed for real-time communication.*
+*The world's simplest input-focused translation tool — one action, no window switching, no workflow interruption.*
 
 ClipTrans introduces a new category: **input-focused translation for real-time communication.**
 It is not designed for reading translations, but for sending messages instantly.
