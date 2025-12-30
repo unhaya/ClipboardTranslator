@@ -174,12 +174,11 @@ python main.py
 ### Workflow
 
 ```
-1. Select text you want to translate
-2. Press Ctrl+C to copy
+1. Type your message in your native language
+2. Select the text and press Ctrl+C
 3. Press Ctrl+Alt+D to translate!
-   -> Results appear in the window
    -> Translation is automatically copied to clipboard
-4. Press Ctrl+V to paste the translation anywhere!
+4. Press Ctrl+V to paste and send!
 ```
 
 **The key advantage**: Your clipboard now contains the translated text, not the original. You can immediately paste it into any application - chat, documents, emails - without any extra steps.
