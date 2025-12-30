@@ -1,244 +1,267 @@
-# ClipTrans v1.00
+# 🌐 ClipTrans - AI搭載クリップボード翻訳アシスタント
 
-クリップボードの単語を自動的に翻訳・辞書検索・音声出力するデスクトップアプリケーション
+<div align="center">
 
-## 機能概要
+![Version](https://img.shields.io/badge/version-1.10-blue.svg)
+![Python](https://img.shields.io/badge/python-3.8+-green.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac-lightgrey.svg)
+![License](https://img.shields.io/badge/license-Private-red.svg)
 
-- **翻訳機能**: DeepL APIを使用した高精度な翻訳
-- **辞書検索機能**: Claude AIを使用した詳細な単語解説
-- **音声出力機能**: テキスト読み上げ（TTS）
-- **家庭教師モード**: Claude AIによるインタラクティブな学習サポート（RAG対応）
-- **翻訳履歴**: 過去の翻訳結果の保存・検索（SQLite）
-- **重複起動防止**: Windowsミューテックスによる単一インスタンス制限
+**コピーするだけで即座に翻訳・辞書検索・発音確認ができる、あなた専用のAI学習パートナー**
 
-## ディレクトリ構造
+[✨ 特徴](#-特徴) • [🚀 クイックスタート](#-クイックスタート) • [📖 使い方](#-使い方) • [🎓 家庭教師モード](#-家庭教師モード) • [⚙️ 設定](#%EF%B8%8F-設定)
 
-```
-v1.00/
-├── main.py                     # アプリケーションエントリーポイント
-├── requirements.txt            # 依存パッケージ（Windows）
-├── requirements_mac.txt        # 依存パッケージ（Mac）
-├── README.md                   # このファイル
-│
-├── config/                     # 設定モジュール
-│   ├── __init__.py
-│   ├── constants.py            # 定数定義（API URL、デフォルト設定、メッセージ）
-│   └── settings.py             # ConfigParser設定管理
-│
-├── core/                       # コア機能モジュール
-│   ├── __init__.py
-│   ├── translation.py          # DeepL/Claude API翻訳処理
-│   ├── dictionary.py           # オフライン辞書
-│   ├── dictionary_db.py        # SQLite辞書データベース
-│   ├── language_detection.py   # 言語検出
-│   ├── text_to_speech.py       # 音声出力（pygame使用）
-│   ├── history.py              # 翻訳履歴管理
-│   ├── network.py              # ネットワーク接続確認
-│   └── tutor/                  # 家庭教師モード（RAG実装済み）
-│       ├── __init__.py
-│       ├── chat_handler.py     # チャット処理（履歴検索連携）
-│       ├── search.py           # 高精度検索（BM25 + 時間的重み付け）★新規
-│       ├── prompt.py           # プロンプト生成
-│       ├── session.py          # 会話セッション管理
-│       ├── state.py            # 状態管理
-│       └── trigger.py          # トリガー検出
-│
-├── ui/                         # UIモジュール
-│   ├── __init__.py
-│   ├── main_window.py          # メインウィンドウ（tkinter）715行
-│   ├── settings_dialog.py      # 設定ダイアログ
-│   └── history_dialog.py       # 履歴ダイアログ
-│
-├── data/                       # データファイル
-│   └── dictionary.db           # SQLite辞書データベース
-│
-├── icon/                       # アイコン
-│   ├── DeepL.png
-│   └── 翻訳.ico
-│
-├── tests/                      # テスト
-│   ├── test_dictionary_and_history.py  # 辞書・履歴テスト
-│   └── test_bm25_search.py             # BM25検索テスト★新規
-│
-└── utils/                      # ユーティリティ
-    └── __init__.py
-```
+</div>
 
-## ホットキー
+---
 
-| 機能 | デフォルトキー |
-|------|---------------|
-| 翻訳 | Ctrl + Alt + D |
-| 辞書検索 | Ctrl + Alt + J |
-| 音声出力 | Ctrl + Alt + T |
+## 💡 こんな悩みはありませんか？
 
-※設定画面から変更可能
+- 📚 **英語の論文やドキュメント**を読んでいて、分からない単語が出てくるたびに翻訳サイトを開くのが面倒...
+- 🎮 **海外のゲームやソフト**を使っていて、いちいちコピペして翻訳するのが億劫...
+- 📖 **英語学習中**で、単語の意味だけでなく語源や使い方まで知りたい...
+- 🗣️ **発音も確認したい**けど、別のサイトを開くのが手間...
 
-## 家庭教師モード（RAG実装）
+### ✅ ClipTransがすべて解決します！
 
-### ハイブリッド方式
-コスト削減のため、以下のハイブリッド方式を採用：
+テキストを選択して`Ctrl+C`でコピー → ホットキーを押すだけ。**たった2秒で翻訳完了**。
 
-1. **過去の話題キーワード**: ローカルで抽出（APIコストゼロ）
-2. **翻訳履歴検索**: ユーザーの質問に関連する履歴を自動検索
-3. **直近N件の会話**: 設定で指定した件数のみAPIに送信
+---
 
-### 高精度検索アルゴリズム（search.py）
+## ✨ 特徴
 
-履歴検索には以下のアルゴリズムを組み合わせて使用：
+### 🚀 爆速翻訳
+- **ホットキー一発**で即座に翻訳（デフォルト: `Ctrl+Alt+D`）
+- DeepL APIによる**高精度な翻訳**
+- 翻訳結果は自動でクリップボードにコピー
 
-| アルゴリズム | 説明 |
-|-------------|------|
-| **BM25** | キーワードの重要度を考慮したランキング（TF-IDF改良版） |
-| **形態素解析** | Janome使用時は名詞・動詞・形容詞を抽出（未インストール時は簡易トークナイザ） |
-| **時間的重み付け** | 新しい履歴ほど高スコア（指数減衰、decay_days=30） |
+### 📚 AI辞書検索
+- Claude AIによる**詳細な単語解説**
+- 語源・接頭辞・接尾辞の分解で**記憶に残る学習**
+- 類義語・対義語も一緒に学べる
 
-```python
-# スコア計算式
-final_score = bm25_score * 0.7 + recency_score * 0.3
-```
+### 🔊 音声読み上げ
+- ネイティブの発音を**ワンタッチで確認**
+- 英語学習のリスニング練習に最適
 
-### 処理フロー
-```
-ユーザー入力
-    ↓
-キーワード抽出（形態素解析/簡易トークナイザ）
-    ↓
-BM25 + 時間的重み付けで履歴検索
-    ↓
-ステータスバーに検索情報表示（例: 「履歴3件を参照中 (12/27, 12/20)」）
-    ↓
-コンテキスト構築
-    ↓
-Claude APIに送信
-    ↓
-応答を表示・履歴に保存
-```
+### 🎓 AI家庭教師モード（NEW!）
+- あなた専用の**AI学習パートナー**
+- 過去の学習履歴を記憶して**パーソナライズされた指導**
+- BM25アルゴリズムによる**高精度な文脈理解**
 
-### 検索コンテキスト表示
-家庭教師モードでは、AIが何を参照しているかをステータスバーに表示：
-- `履歴3件を参照中 (12/27, 12/20)` - 関連履歴が見つかった場合
-- `履歴2件を参照中...` - 日付情報がない場合
-- `考え中...` - 関連履歴がない場合
+### 📊 学習履歴管理
+- すべての翻訳履歴を**自動保存**
+- キーワード検索で過去の学習内容を**即座に復習**
 
-### オプション: Janomeインストール
-形態素解析の精度を上げるには：
-```bash
-pip install janome
-```
+---
 
-## Claude APIモデル（2025年12月時点）
+## 🚀 クイックスタート
 
-```python
-CLAUDE_MODELS = {
-    'sonnet': 'claude-sonnet-4-5-20250929',   # 推奨: バランス型
-    'haiku': 'claude-haiku-4-5-20251001',     # 高速・低コスト
-    'opus': 'claude-opus-4-5-20251101',       # 最高性能・高コスト
-}
-```
+### 必要なもの
+- Python 3.8以上
+- DeepL APIキー（無料プランでOK）
+- Claude APIキー（家庭教師モード使用時）
 
-## 設定項目
-
-### 翻訳設定
-- DeepL APIの有効/無効
-- 翻訳文字数制限
-
-### API設定
-- DeepL APIキー
-- Claude APIキー
-- Claudeプロンプトテンプレート
-
-### 家庭教師設定
-- 家庭教師モードの有効/無効
-- 使用モデル選択（Sonnet/Haiku/Opus）
-- 会話コンテキスト保持数（3/5/10/15/20件）
-- システムプロンプトのカスタマイズ
-
-### 音声設定
-- 音声出力の有効/無効
-- 音量調整
-
-### ショートカット設定
-- 各機能のホットキーカスタマイズ
-
-## コンパイル
-
-PyInstallerを使用してEXEにコンパイル:
+### インストール
 
 ```bash
-cd D:\OneDrive\python_cord\ClipboardTranslator\compile_file
-pyinstaller ClipboardTranslator.spec --noconfirm
+# リポジトリをクローン
+git clone https://github.com/unhaya/ClipboardTranslator.git
+cd ClipboardTranslator
+
+# 依存パッケージをインストール
+pip install -r requirements.txt
+
+# 起動
+python main.py
 ```
 
-出力先: `compile_file/dist/ClipTrans/ClipTrans.exe`
+### 初期設定
+1. アプリ起動後、設定画面を開く
+2. DeepL APIキーを入力
+3. （オプション）Claude APIキーを入力
+4. 設定を保存して完了！
 
-## 重複起動防止
+---
 
-`main.py`でWindowsミューテックスを使用:
+## 📖 使い方
 
-```python
-MUTEX_NAME = "ClipboardTranslator_v1.00_SingleInstance"
+### 基本操作
+
+| 機能 | ホットキー | 説明 |
+|------|-----------|------|
+| 翻訳 | `Ctrl+Alt+D` | クリップボードのテキストを翻訳 |
+| 辞書検索 | `Ctrl+Alt+J` | 単語の詳細な解説を表示 |
+| 音声出力 | `Ctrl+Alt+T` | テキストを読み上げ |
+
+### 操作の流れ
+
+```
+1. 翻訳したいテキストを選択
+2. Ctrl+C でコピー
+3. Ctrl+Alt+D で翻訳！
+   → 結果がウィンドウに表示される
 ```
 
-2回目の起動時は警告ダイアログを表示して終了。
+### 辞書検索の例
 
-## 開発状況（2025年12月27日）
+「alleviate」を辞書検索すると：
 
-### 完了した機能
-- [x] 基本翻訳機能（DeepL API）
-- [x] 辞書検索機能（Claude API）
-- [x] 音声出力機能
-- [x] 翻訳履歴管理（SQLite）
-- [x] 設定画面
-- [x] ホットキーカスタマイズ
-- [x] 家庭教師モード（ハイブリッドRAG実装）
-- [x] 家庭教師設定タブ
-- [x] 重複起動防止
-- [x] チャットパネル（フッター固定表示）
-- [x] 翻訳履歴検索連携（家庭教師モード）
-- [x] モジュール分離（TutorChatHandler）
-- [x] 高精度検索（BM25 + 形態素解析 + 時間的重み付け）
-- [x] BM25検索テストスクリプト（7テスト全合格）
-- [x] 検索コンテキスト表示（ステータスバーに参照履歴を表示）
+```
+【意味】
+（苦痛・問題などを）軽減する、和らげる
 
-### テスト実行方法
-```bash
-# 辞書・履歴テスト
-python tests/test_dictionary_and_history.py
+【語源分解】
+al- (強調) + levi- (軽い) + -ate (動詞化)
+→ 「強く軽くする」= 軽減する
 
-# BM25検索テスト
-python tests/test_bm25_search.py
+【類義語】
+relieve, ease, mitigate
+
+【対義語】
+aggravate, worsen
 ```
 
-### モジュール行数管理
-| モジュール | 行数 | 状況 |
-|-----------|------|------|
-| main_window.py | 908行 | ステータス表示機能追加 |
-| settings_dialog.py | 382行 | OK |
-| search.py | 331行 | BM25 + メタデータ返却 |
-| chat_handler.py | 243行 | 検索情報コールバック追加 |
-| history.py | 229行 | OK |
-| translation.py | 155行 | OK |
+---
 
-### 今後の開発予定
-- [ ] Janome形態素解析のオプション導入
-- [ ] さらなるモジュール分離（500行目標）
+## 🎓 家庭教師モード
 
-## 依存パッケージ
+### あなただけのAI学習パートナー
 
-主要パッケージ:
-- `tkinter` - GUI
-- `requests` - HTTP通信
-- `pynput` - ホットキー監視
-- `pyperclip` - クリップボード操作
-- `pygame` - 音声出力
-- `googletrans` - Google翻訳（フォールバック）
+家庭教師モードは、ただのAIチャットではありません。
+**あなたの学習履歴を記憶し、過去に学んだ内容を踏まえて指導してくれる**、まさに専属家庭教師です。
 
-## 設定ファイル
+### 特徴
 
-設定はユーザーディレクトリに保存:
+- **学習履歴の活用**: 過去に翻訳・辞書検索した単語を記憶
+- **パーソナライズ**: あなたの弱点を把握した上でアドバイス
+- **高精度検索**: BM25 + 形態素解析で関連履歴を自動検出
+- **時間的重み付け**: 最近学んだ内容を優先的に参照
+
+### 使用例
+
+```
+あなた: "前に調べた alleviateって覚えてる？"
+
+AI家庭教師: "もちろん覚えてますよ！12/27に調べた単語ですね。
+al-(強調) + levi-(軽い) + -ate(動詞化) で「軽減する」でしたね。
+類義語の relieve と一緒に覚えると効果的ですよ！"
+```
+
+### 対応モデル
+
+| モデル | 特徴 | おすすめ |
+|--------|------|----------|
+| Claude Sonnet 4.5 | バランス型 | ⭐ 推奨 |
+| Claude Haiku 4.5 | 高速・低コスト | 日常使い |
+| Claude Opus 4.5 | 最高性能 | 深い学習 |
+
+---
+
+## ⚙️ 設定
+
+### 設定項目一覧
+
+| カテゴリ | 項目 | 説明 |
+|---------|------|------|
+| 翻訳 | DeepL有効/無効 | DeepL APIの使用 |
+| 翻訳 | 文字数制限 | 翻訳対象の最大文字数 |
+| API | DeepL APIキー | DeepLの認証キー |
+| API | Claude APIキー | Claude AIの認証キー |
+| 音声 | 音声出力有効/無効 | TTS機能の使用 |
+| 音声 | 音量 | 読み上げ音量（0.0〜1.0） |
+| 家庭教師 | モデル選択 | 使用するClaudeモデル |
+| 家庭教師 | 履歴保持数 | 参照する会話履歴の件数 |
+| ショートカット | 各機能のホットキー | カスタマイズ可能 |
+
+### 設定ファイルの場所
+
 - Windows: `%APPDATA%\ClipboardTranslator\config.ini`
 
-## ライセンス
+---
+
+## 🛠️ 技術仕様
+
+### アーキテクチャ
+
+```
+ClipTrans/
+├── main.py                 # エントリーポイント
+├── config/                 # 設定管理
+├── core/                   # コア機能
+│   ├── translation.py      # DeepL/Claude翻訳
+│   ├── dictionary.py       # 辞書機能
+│   ├── text_to_speech.py   # 音声出力
+│   ├── history.py          # 履歴管理
+│   └── tutor/              # 家庭教師モード
+│       ├── chat_handler.py # チャット処理
+│       └── search.py       # BM25検索
+├── ui/                     # ユーザーインターフェース
+│   ├── main_window.py      # メインウィンドウ
+│   ├── settings_dialog.py  # 設定画面
+│   └── history_dialog.py   # 履歴画面
+└── data/                   # データ保存
+    └── dictionary.db       # SQLiteデータベース
+```
+
+### 使用技術
+
+- **GUI**: tkinter
+- **翻訳API**: DeepL API
+- **AI**: Claude API (Anthropic)
+- **音声合成**: pygame + gTTS
+- **データベース**: SQLite
+- **検索**: BM25アルゴリズム + 形態素解析
+
+---
+
+## 📋 必要要件
+
+### 必須
+- Python 3.8以上
+- インターネット接続
+
+### 依存パッケージ
+
+```
+requests
+pynput
+pyperclip
+pygame
+googletrans==4.0.0-rc1
+```
+
+### オプション（推奨）
+
+```
+janome  # 形態素解析の精度向上
+```
+
+---
+
+## 🤝 コントリビューション
+
+バグ報告や機能リクエストは[Issues](https://github.com/unhaya/ClipboardTranslator/issues)へお願いします。
+
+---
+
+## 📜 ライセンス
 
 Private use
+
+---
+
+## 🙏 謝辞
+
+- [DeepL](https://www.deepl.com/) - 高精度な翻訳API
+- [Anthropic](https://www.anthropic.com/) - Claude AI
+
+---
+
+<div align="center">
+
+**⭐ このプロジェクトが役に立ったら、Starをお願いします！ ⭐**
+
+Made with ❤️ for language learners
+
+</div>

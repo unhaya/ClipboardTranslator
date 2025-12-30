@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipTrans - AI搭載クリップボード翻訳アシスタント</title>
+    <meta name="description" content="コピーするだけで即座に翻訳・辞書検索・発音確認ができる、あなた専用のAI学習パートナー">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .hero .tagline {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        /* Problem Section */
+        .problems {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .problems h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+            color: var(--dark);
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .problem-card {
+            background: var(--light);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .problem-card .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .problem-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        /* Solution Section */
+        .solution {
+            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .solution h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .solution p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            padding: 30px;
+            border-radius: 15px;
+            background: var(--light);
+            border-left: 4px solid var(--primary);
+        }
+
+        .feature-card h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-card li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .feature-card li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        /* Tutor Section */
+        .tutor {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        }
+
+        .tutor h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .tutor .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 50px;
+        }
+
+        .chat-demo {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        .chat-message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .chat-message.user {
+            text-align: right;
+        }
+
+        .chat-message .bubble {
+            display: inline-block;
+            padding: 15px 20px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+
+        .chat-message.user .bubble {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .chat-message.ai .bubble {
+            background: var(--light);
+            border-bottom-left-radius: 5px;
+        }
+
+        .chat-message .label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        /* Hotkeys Section */
+        .hotkeys {
+            padding: 80px 0;
+            background: var(--dark);
+            color: white;
+        }
+
+        .hotkeys h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+        }
+
+        .hotkey-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hotkey-card {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .hotkey-keys {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .key {
+            background: white;
+            color: var(--dark);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-family: monospace;
+            box-shadow: 0 3px 0 #9CA3AF;
+        }
+
+        .hotkey-card h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        /* Quick Start Section */
+        .quickstart {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .quickstart h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+        }
+
+        .steps {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .step-content code {
+            background: var(--light);
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: block;
+            margin-top: 10px;
+            font-family: 'Consolas', monospace;
+            overflow-x: auto;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            color: var(--dark);
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+
+        .github-link:hover {
+            transform: scale(1.05);
+            text-decoration: none;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero .tagline {
+                font-size: 1rem;
+            }
+
+            .features h2, .problems h2, .tutor h2, .hotkeys h2, .quickstart h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>🌐 ClipTrans</h1>
+            <p class="tagline">コピーするだけで即座に翻訳・辞書検索・発音確認ができる<br>あなた専用のAI学習パートナー</p>
+            <div class="badge-container">
+                <span class="badge">v1.10</span>
+                <span class="badge">Python 3.8+</span>
+                <span class="badge">Windows / Mac</span>
+            </div>
+            <a href="https://github.com/unhaya/ClipboardTranslator" class="cta-button">
+                ⬇️ 今すぐダウンロード
+            </a>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="problems">
+        <div class="container">
+            <h2>💡 こんな悩みはありませんか？</h2>
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="icon">📚</div>
+                    <h3>論文を読むのが大変</h3>
+                    <p>分からない単語が出るたびに翻訳サイトを開くのが面倒...</p>
+                </div>
+                <div class="problem-card">
+                    <div class="icon">🎮</div>
+                    <h3>海外ソフトが使いにくい</h3>
+                    <p>いちいちコピペして翻訳するのが億劫...</p>
+                </div>
+                <div class="problem-card">
+                    <div class="icon">📖</div>
+                    <h3>単語が覚えられない</h3>
+                    <p>意味だけでなく語源や使い方も知りたい...</p>
+                </div>
+                <div class="problem-card">
+                    <div class="icon">🗣️</div>
+                    <h3>発音がわからない</h3>
+                    <p>発音を確認するのに別サイトを開くのが手間...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution">
+        <div class="container">
+            <h2>✅ ClipTransがすべて解決！</h2>
+            <p>テキストをコピー → ホットキー一発<br><strong>たった2秒で翻訳完了</strong></p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2>✨ 主な機能</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>🚀 爆速翻訳</h3>
+                    <ul>
+                        <li>ホットキー一発で即座に翻訳</li>
+                        <li>DeepL APIによる高精度翻訳</li>
+                        <li>結果を自動でクリップボードにコピー</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>📚 AI辞書検索</h3>
+                    <ul>
+                        <li>Claude AIによる詳細な単語解説</li>
+                        <li>語源・接頭辞・接尾辞の分解</li>
+                        <li>類義語・対義語も一緒に学習</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>🔊 音声読み上げ</h3>
+                    <ul>
+                        <li>ネイティブの発音をワンタッチで確認</li>
+                        <li>リスニング練習に最適</li>
+                        <li>音量調整可能</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>📊 学習履歴管理</h3>
+                    <ul>
+                        <li>すべての翻訳履歴を自動保存</li>
+                        <li>キーワード検索で即座に復習</li>
+                        <li>SQLiteで安全にデータ管理</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tutor Section -->
+    <section class="tutor">
+        <div class="container">
+            <h2>🎓 AI家庭教師モード</h2>
+            <p class="subtitle">あなただけのAI学習パートナー<br>過去の学習履歴を記憶して、パーソナライズされた指導を提供</p>
+
+            <div class="chat-demo">
+                <div class="chat-message user">
+                    <div class="label">あなた</div>
+                    <div class="bubble">前に調べた alleviate って覚えてる？</div>
+                </div>
+                <div class="chat-message ai">
+                    <div class="label">AI家庭教師</div>
+                    <div class="bubble">
+                        もちろん覚えてますよ！12/27に調べた単語ですね。<br><br>
+                        <strong>al-</strong>(強調) + <strong>levi-</strong>(軽い) + <strong>-ate</strong>(動詞化)<br>
+                        で「軽減する」でしたね。<br><br>
+                        類義語の <em>relieve</em> と一緒に覚えると効果的ですよ！
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hotkeys Section -->
+    <section class="hotkeys">
+        <div class="container">
+            <h2>⌨️ ショートカットキー</h2>
+            <div class="hotkey-grid">
+                <div class="hotkey-card">
+                    <div class="hotkey-keys">
+                        <span class="key">Ctrl</span>
+                        <span class="key">Alt</span>
+                        <span class="key">D</span>
+                    </div>
+                    <h3>翻訳</h3>
+                    <p>クリップボードのテキストを翻訳</p>
+                </div>
+                <div class="hotkey-card">
+                    <div class="hotkey-keys">
+                        <span class="key">Ctrl</span>
+                        <span class="key">Alt</span>
+                        <span class="key">J</span>
+                    </div>
+                    <h3>辞書検索</h3>
+                    <p>単語の詳細な解説を表示</p>
+                </div>
+                <div class="hotkey-card">
+                    <div class="hotkey-keys">
+                        <span class="key">Ctrl</span>
+                        <span class="key">Alt</span>
+                        <span class="key">T</span>
+                    </div>
+                    <h3>音声出力</h3>
+                    <p>テキストを読み上げ</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section class="quickstart">
+        <div class="container">
+            <h2>🚀 クイックスタート</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>リポジトリをクローン</h3>
+                        <code>git clone https://github.com/unhaya/ClipboardTranslator.git</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>依存パッケージをインストール</h3>
+                        <code>pip install -r requirements.txt</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>アプリを起動</h3>
+                        <code>python main.py</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>APIキーを設定</h3>
+                        <p>設定画面でDeepL APIキーとClaude APIキーを入力して完了！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <a href="https://github.com/unhaya/ClipboardTranslator" class="github-link">
+                <svg height="24" viewBox="0 0 16 16" width="24" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+                GitHub でソースコードを見る
+            </a>
+            <p>Made with ❤️ for language learners</p>
+            <p style="margin-top: 10px; opacity: 0.7;">
+                <a href="https://www.deepl.com/">DeepL</a> |
+                <a href="https://www.anthropic.com/">Anthropic (Claude)</a>
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
