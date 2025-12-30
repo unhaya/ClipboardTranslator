@@ -11,6 +11,8 @@
 
 ClipTrans is not a translation app - it is a **real-time multilingual input assistant**.
 
+*ClipTrans introduces a new category: input-focused translation for real-time communication.*
+
 [Why ClipTrans?](#why-cliptrans) | [Key Features](#key-features) | [Quick Start](#quick-start) | [AI Tutor Mode](#ai-tutor-mode) | [Settings](#settings)
 
 </div>
