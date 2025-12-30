@@ -116,6 +116,9 @@ You can type in any supported language and communicate instantly with users of a
 
 ## Philosophy
 
+ClipTrans was born from real-world situations where there is no time to "use a translation app".
+It is designed for moments when typing and sending immediately matters more than reading perfect translations.
+
 ClipTrans treats translation as an **invisible infrastructure**, not a destination.
 
 You should not need to:
