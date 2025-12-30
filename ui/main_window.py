@@ -284,6 +284,33 @@ class TranslationApp(tk.Tk):
     def update_status(self, message_key, duration=3000, **kwargs):
         """ステータスバーのメッセージを更新"""
         self.status_bar.update(message_key, duration, **kwargs)
+        # 翻訳完了時にカーソル位置にポップアップを表示
+        if message_key == 'translation_complete':
+            self._show_cursor_popup("Done!")
+
+    def _show_cursor_popup(self, text: str, duration: int = 1000):
+        """マウスカーソル位置に一時的なポップアップを表示"""
+        try:
+            x, y = self.winfo_pointerxy()
+            popup = tk.Toplevel(self)
+            popup.overrideredirect(True)  # 枠なし
+            popup.attributes('-topmost', True)  # 最前面
+            popup.attributes('-alpha', 0.8)  # 80%不透明度
+            popup.geometry(f"+{x+15}+{y+10}")
+            popup.config(bg='#ffffff')  # 白枠用の背景
+            label = tk.Label(
+                popup,
+                text=text,
+                bg='#1a1a1a',
+                fg='#ffffff',
+                font=('Yu Gothic UI', 10, 'bold'),
+                padx=10,
+                pady=5
+            )
+            label.pack(padx=1, pady=1)  # 1px白枠
+            popup.after(duration, popup.destroy)
+        except Exception:
+            pass  # ポップアップ表示失敗は無視
 
     def update_speech_status(self, message):
         """音声出力の状態を更新する"""

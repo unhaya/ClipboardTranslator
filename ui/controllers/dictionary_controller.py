@@ -71,15 +71,13 @@ class DictionaryController:
                 source_lang = detect_language(text)
                 target_lang = 'EN' if source_lang == 'JA' else 'JA'
 
-                # 履歴から検索 - キャッシュ機能
-                for entry in self.history.history:
-                    if (entry['original_text'] == text and
-                        entry['source_lang'] == source_lang and
-                        entry['translation_type'] == "dictionary"):
-                        dict_result = entry['translated_text']
-                        self._on_log(f"{self._get_message('dict_meaning_label')} [キャッシュから]\n{dict_result}")
-                        self._on_status('dictionary_lookup_complete')
-                        return
+                # 履歴から検索 - キャッシュ機能（SQLite/JSONどちらでも動作）
+                cached = self.history.find_cached(text, source_lang, "dictionary")
+                if cached:
+                    dict_result = cached['translated_text']
+                    self._on_log(f"{self._get_message('dict_meaning_label')} [cache]\n{dict_result}")
+                    self._on_status('dictionary_lookup_complete')
+                    return
 
                 claude_api_key = config.get('Settings', 'claude_api_key', fallback='')
                 prompt_template = config.get('Settings', 'claude_prompt_template', fallback='')

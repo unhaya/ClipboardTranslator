@@ -105,14 +105,14 @@ class TranslationController:
                 # v1.20: 多言語対応 - 設定から翻訳先言語を決定
                 target_lang = self._determine_target_language(source_lang)
 
-                # 履歴から検索 - キャッシュ機能
-                for entry in self.history.history:
-                    if entry['original_text'] == text and entry['source_lang'] == source_lang:
-                        translated = entry['translated_text']
-                        self._on_log(f"{self._get_message('translated_label')} [キャッシュから]\n{translated}")
-                        self.clipboard.set_text(translated)
-                        self._on_status('translation_complete')
-                        return
+                # 履歴から検索 - キャッシュ機能（SQLite/JSONどちらでも動作）
+                cached = self.history.find_cached(text, source_lang, "normal")
+                if cached:
+                    translated = cached['translated_text']
+                    self._on_log(f"{self._get_message('translated_label')} [cache]\n{translated}")
+                    self.clipboard.set_text(translated)
+                    self._on_status('translation_complete')
+                    return
 
                 # ローカル辞書で翻訳（日英のみ対応）
                 if is_single_word(text) and target_lang in ('JA', 'EN'):
