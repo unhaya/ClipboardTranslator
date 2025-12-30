@@ -9,6 +9,8 @@
 
 **Type in your language. Send in theirs. Instantly.**
 
+*The world's simplest input-focused translation tool — designed for real-time communication.*
+
 ClipTrans is not a translation app - it is a **real-time multilingual input assistant**.
 
 *ClipTrans introduces a new category: input-focused translation for real-time communication.*
