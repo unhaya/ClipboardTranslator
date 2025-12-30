@@ -9,6 +9,9 @@ on:
     branches: [master, main]
   workflow_dispatch:  # 手動実行を許可
 
+permissions:
+  contents: write  # リリース作成に必要
+
 jobs:
   build:
     strategy:
