@@ -119,6 +119,7 @@ python main.py
 | Translate | `Ctrl+Alt+D` | Translate clipboard text |
 | Dictionary | `Ctrl+Alt+J` | Show detailed word explanation |
 | Speech | `Ctrl+Alt+T` | Read text aloud |
+| Font Size | `Ctrl+Wheel` | Adjust text size in the window |
 
 ### Workflow
 
