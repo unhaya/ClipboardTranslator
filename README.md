@@ -54,9 +54,10 @@ Select text, press `Ctrl+C` to copy, then hit the hotkey. **Translation in just 
 - **One hotkey** for immediate translation (default: `Ctrl+Alt+D`)
 - **High-accuracy translation** powered by DeepL API
 - **Seamless clipboard replacement** - Translation results automatically replace clipboard content, ready to paste immediately with `Ctrl+V`
+- **Works in the background** - No need to switch to ClipTrans window. Hotkeys work system-wide from any application
 
 > **What makes ClipTrans different?**
-> Unlike browser-based translators that require switching windows and manual copy-paste, ClipTrans seamlessly replaces your clipboard content. Copy text → Press hotkey → Paste translation. No extra steps needed.
+> Unlike browser-based translators that require switching windows and manual copy-paste, ClipTrans runs quietly in the background and responds to global hotkeys. While you're working in Word, browsing the web, or playing a game - just copy text and press the hotkey. Your clipboard is instantly replaced with the translation, ready to paste. No window switching, no extra steps.
 
 ### AI Dictionary
 - **Detailed word explanations** powered by Claude AI
