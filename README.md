@@ -5,7 +5,7 @@
 ![Version](https://img.shields.io/badge/version-1.10-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac-lightgrey.svg)
-![License](https://img.shields.io/badge/license-Private-red.svg)
+![License](https://img.shields.io/badge/license-Custom-orange.svg)
 
 **コピーするだけで即座に翻訳・辞書検索・発音確認ができる、あなた専用のAI学習パートナー**
 
@@ -247,7 +247,18 @@ janome  # 形態素解析の精度向上
 
 ## 📜 ライセンス
 
-Private use
+**Copyright (c) 2025 unhaya. All rights reserved.**
+
+このソフトウェアはオープンソースですが、著作権は放棄していません。
+
+| 利用形態 | 許可 |
+|---------|------|
+| 個人利用 | ✅ 自由に使用可能 |
+| 学習目的 | ✅ 自由に使用可能 |
+| 改変・フォーク | ✅ 可能（著作権表示を維持すること） |
+| 商用利用 | ⚠️ 要問い合わせ |
+
+商用利用をご希望の場合は、[Issues](https://github.com/unhaya/ClipboardTranslator/issues) からお問い合わせください。
 
 ---
 

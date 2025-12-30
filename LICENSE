@@ -1,0 +1,66 @@
+ClipTrans License
+
+Copyright (c) 2025 unhaya. All rights reserved.
+
+このソフトウェアはオープンソースとして公開されていますが、
+著作権は放棄されていません。
+
+=== 許可される利用 ===
+
+1. 個人利用
+   - 個人的な目的での使用、コピー、改変が許可されます。
+
+2. 学習目的
+   - 教育・学習目的での使用が許可されます。
+
+3. 改変・フォーク
+   - ソースコードの改変、フォークが許可されます。
+   - ただし、著作権表示を維持する必要があります。
+   - 改変版を配布する場合は、このライセンスを含める必要があります。
+
+=== 制限される利用 ===
+
+1. 商用利用
+   - 商用目的での使用には、著作権者からの書面による許可が必要です。
+   - 商用利用をご希望の場合は、以下からお問い合わせください：
+     https://github.com/unhaya/ClipboardTranslator/issues
+
+=== 免責事項 ===
+
+本ソフトウェアは「現状のまま」提供され、明示または黙示を問わず、
+いかなる種類の保証も伴いません。著作権者は、本ソフトウェアの使用
+から生じるいかなる損害についても責任を負いません。
+
+---
+
+ClipTrans License (English)
+
+Copyright (c) 2025 unhaya. All rights reserved.
+
+This software is released as open source, but the copyright is not waived.
+
+=== Permitted Uses ===
+
+1. Personal Use
+   - Use, copying, and modification for personal purposes is permitted.
+
+2. Educational Use
+   - Use for educational and learning purposes is permitted.
+
+3. Modification & Forking
+   - Modification and forking of source code is permitted.
+   - Copyright notice must be retained.
+   - Modified versions must include this license when distributed.
+
+=== Restricted Uses ===
+
+1. Commercial Use
+   - Commercial use requires written permission from the copyright holder.
+   - For commercial use inquiries, please contact:
+     https://github.com/unhaya/ClipboardTranslator/issues
+
+=== Disclaimer ===
+
+This software is provided "as is", without warranty of any kind, express or
+implied. The copyright holder shall not be liable for any damages arising
+from the use of this software.
