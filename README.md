@@ -164,7 +164,7 @@ Translation should disappear into the workflow — that is the core design princ
 ### Requirements
 - Python 3.8 or higher
 - DeepL API key ([Get your free API key here](https://www.deepl.com/ja/your-account/keys))
-- Claude API key (optional, for AI Tutor mode)
+- Claude API key ([Get your API key here](https://console.anthropic.com/settings/keys)) - optional, for AI Tutor mode
 
 ### Installation
 
