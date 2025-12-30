@@ -4,6 +4,8 @@
 """
 import tkinter as tk
 from typing import Callable, Optional
+from config.constants import get_message
+from config.settings import config
 
 
 class ChatPanel(tk.Frame):
@@ -33,7 +35,7 @@ class ChatPanel(tk.Frame):
 
         self._toggle_btn = tk.Button(
             self._toggle_frame,
-            text="▲ 質問・相談する",
+            text=self._get_message('chat_toggle'),
             command=self.toggle,
             bg='#404040',
             fg='#ffffff',
@@ -72,7 +74,7 @@ class ChatPanel(tk.Frame):
         # 送信ボタン
         self._send_btn = tk.Button(
             self._input_frame,
-            text="送信",
+            text=self._get_message('chat_send'),
             command=self._send,
             bg='#4a7c59',
             fg='#ffffff',
@@ -85,25 +87,20 @@ class ChatPanel(tk.Frame):
         )
         self._send_btn.pack(side=tk.RIGHT, padx=(5, 0))
 
-        # ヒントラベル
-        self._hint_label = tk.Label(
-            self._panel_frame,
-            text="「教えて」「質問していい？」などで家庭教師モードが起動します",
-            bg='#2a2a2a',
-            fg='#888888',
-            font=('Yu Gothic UI', 8)
-        )
-        self._hint_label.pack(anchor=tk.W, padx=8, pady=(0, 5))
+    def _get_message(self, key: str, **kwargs) -> str:
+        """設定された言語に基づいてメッセージを取得"""
+        response_language = config.get('Settings', 'response_language', fallback='EN')
+        return get_message(key, response_language, **kwargs)
 
     def toggle(self) -> None:
         """パネルの表示/非表示を切り替える"""
         if self._panel_visible:
             self._panel_frame.pack_forget()
-            self._toggle_btn.config(text="▲ 質問・相談する")
+            self._toggle_btn.config(text=self._get_message('chat_toggle'))
             self._panel_visible = False
         else:
             self._panel_frame.pack(side=tk.BOTTOM, fill=tk.X, before=self._toggle_frame)
-            self._toggle_btn.config(text="▼ 閉じる")
+            self._toggle_btn.config(text=self._get_message('chat_toggle_close'))
             self._panel_visible = True
             self._input_text.focus_set()
 

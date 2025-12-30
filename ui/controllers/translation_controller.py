@@ -1,4 +1,4 @@
-# ClipboardTranslator v1.10 - TranslationController
+# ClipboardTranslator v1.20 - TranslationController
 """
 翻訳処理を担当するコントローラー
 """
@@ -49,6 +49,37 @@ class TranslationController:
             return config[section].getboolean(key, default)
         return default
 
+    def _determine_target_language(self, source_lang: str) -> str:
+        """
+        翻訳先言語を決定する（v1.20: 多言語対応）
+
+        Parameters:
+            source_lang: 検出されたソース言語
+
+        Returns:
+            翻訳先言語コード
+        """
+        # 設定から翻訳先言語を取得
+        configured_target = config.get('Settings', 'target_language', fallback='EN')
+        auto_detect = self._get_config_bool('Settings', 'auto_detect_source', True)
+
+        if auto_detect:
+            # 自動検出モード: ソース言語と翻訳先言語が同じ場合は日英自動切替
+            if source_lang == configured_target:
+                # 日本語↔英語の自動切替（従来の動作）
+                if source_lang == 'JA':
+                    return 'EN'
+                elif source_lang == 'EN':
+                    return 'JA'
+                else:
+                    # その他の言語の場合は英語に翻訳
+                    return 'EN'
+            else:
+                return configured_target
+        else:
+            # 固定モード: 常に設定された言語に翻訳
+            return configured_target
+
     def translate(self) -> None:
         """通常の翻訳処理"""
         with translation_lock:
@@ -71,7 +102,8 @@ class TranslationController:
                 self._on_log(f"\n{self._get_message('input_label')}{text}")
 
                 source_lang = detect_language(text)
-                target_lang = 'EN' if source_lang == 'JA' else 'JA'
+                # v1.20: 多言語対応 - 設定から翻訳先言語を決定
+                target_lang = self._determine_target_language(source_lang)
 
                 # 履歴から検索 - キャッシュ機能
                 for entry in self.history.history:
@@ -82,8 +114,8 @@ class TranslationController:
                         self._on_status('translation_complete')
                         return
 
-                # ローカル辞書で翻訳
-                if is_single_word(text):
+                # ローカル辞書で翻訳（日英のみ対応）
+                if is_single_word(text) and target_lang in ('JA', 'EN'):
                     local_result = check_dictionary(text, source_lang)
                     if local_result:
                         self._on_log(f"{self._get_message('translated_label')}\n{local_result}")

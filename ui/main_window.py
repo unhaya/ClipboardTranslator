@@ -12,7 +12,7 @@ import tkinter as tk
 # 親ディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config.constants import MESSAGES, VERSION, APP_TITLE
+from config.constants import MESSAGES, VERSION, APP_TITLE, get_message as const_get_message
 from config.settings import config, load_config
 from core.dictionary import init_dictionaries, close_dictionary
 from core.text_to_speech import TextToSpeechHandler
@@ -191,14 +191,16 @@ class TranslationApp(tk.Tk):
             print(f"アイコン設定エラー: {e}")
 
     def get_message(self, key, **kwargs):
-        """設定された言語に基づいてメッセージを取得"""
-        response_language = config.get('Settings', 'response_language', fallback='JA')
-        message = MESSAGES[response_language].get(key, key)
+        """設定された言語に基づいてメッセージを取得（フォールバック対応）"""
+        response_language = config.get('Settings', 'response_language', fallback='EN')
+        return const_get_message(key, response_language, **kwargs)
 
-        if kwargs:
-            message = message.format(**kwargs)
-
-        return message
+    def update_ui_language(self, lang_code: str):
+        """UI言語が変更されたときに呼び出される（即時反映用）"""
+        # 現在は再起動なしで反映される新しいメッセージは
+        # 次のupdate_status呼び出しから適用される
+        print(f"UI言語が {lang_code} に変更されました")
+        # 将来的にメニューラベルなども動的に変更する場合はここに処理を追加
 
     def get_config_bool(self, section, key, default=False):
         """設定から真偽値を取得"""
@@ -212,31 +214,31 @@ class TranslationApp(tk.Tk):
 
         # ファイルメニュー
         file_menu = tk.Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label="設定", command=self.show_settings)
+        file_menu.add_command(label=self.get_message('menu_settings'), command=self.show_settings)
         file_menu.add_separator()
-        file_menu.add_command(label="終了", command=self.on_closing)
-        menu_bar.add_cascade(label="ファイル", menu=file_menu)
+        file_menu.add_command(label=self.get_message('menu_exit'), command=self.on_closing)
+        menu_bar.add_cascade(label=self.get_message('menu_file'), menu=file_menu)
 
         # 編集メニュー
         edit_menu = tk.Menu(menu_bar, tearoff=0)
-        edit_menu.add_command(label="コピー", command=self.copy_selected_text)
-        edit_menu.add_command(label="すべて選択", command=self.select_all_text)
-        edit_menu.add_command(label="クリア", command=self.clear_text)
-        menu_bar.add_cascade(label="編集", menu=edit_menu)
+        edit_menu.add_command(label=self.get_message('menu_copy'), command=self.copy_selected_text)
+        edit_menu.add_command(label=self.get_message('menu_select_all'), command=self.select_all_text)
+        edit_menu.add_command(label=self.get_message('menu_clear'), command=self.clear_text)
+        menu_bar.add_cascade(label=self.get_message('menu_edit'), menu=edit_menu)
 
         # 履歴メニュー
         history_menu = tk.Menu(menu_bar, tearoff=0)
-        history_menu.add_command(label="翻訳履歴を表示", command=self.show_history_window)
+        history_menu.add_command(label=self.get_message('menu_show_history'), command=self.show_history_window)
         history_menu.add_separator()
-        history_menu.add_command(label="履歴をクリア",
+        history_menu.add_command(label=self.get_message('menu_clear_history'),
                                  command=lambda: self.history.clear_history() if hasattr(self, 'history') else None)
-        menu_bar.add_cascade(label="履歴", menu=history_menu)
+        menu_bar.add_cascade(label=self.get_message('menu_history'), menu=history_menu)
 
         # ヘルプメニュー
         help_menu = tk.Menu(menu_bar, tearoff=0)
-        help_menu.add_command(label="使い方", command=self.show_help)
-        help_menu.add_command(label="バージョン情報", command=self.show_about)
-        menu_bar.add_cascade(label="ヘルプ", menu=help_menu)
+        help_menu.add_command(label=self.get_message('menu_usage'), command=self.show_help)
+        help_menu.add_command(label=self.get_message('menu_about'), command=self.show_about)
+        menu_bar.add_cascade(label=self.get_message('menu_help'), menu=help_menu)
 
         self.config(menu=menu_bar)
         self.menu_bar = menu_bar
@@ -254,9 +256,9 @@ class TranslationApp(tk.Tk):
     def create_context_menu(self):
         """右クリックメニューの作成"""
         self.context_menu = tk.Menu(self, tearoff=0)
-        self.context_menu.add_command(label="コピー", command=self.copy_selected_text)
-        self.context_menu.add_command(label="すべて選択", command=self.select_all_text)
-        self.context_menu.add_command(label="クリア", command=self.clear_text)
+        self.context_menu.add_command(label=self.get_message('menu_copy'), command=self.copy_selected_text)
+        self.context_menu.add_command(label=self.get_message('menu_select_all'), command=self.select_all_text)
+        self.context_menu.add_command(label=self.get_message('menu_clear'), command=self.clear_text)
 
     def show_context_menu(self, event):
         """右クリックメニューを表示"""
@@ -351,59 +353,31 @@ class TranslationApp(tk.Tk):
     def show_help(self):
         """使い方ダイアログを表示"""
         help_window = tk.Toplevel(self)
-        help_window.title("使い方")
+        help_window.title(self.get_message('help_title'))
         self._center_window(help_window, 400, 480)
         help_window.transient(self)
 
-        help_text = """
-使い方:
-
-1. 翻訳したいテキストをコピー（Ctrl+C）
-2. Ctrl+Alt+D を押す（標準ショートカット）
-3. 翻訳結果が自動的にクリップボードにコピーされます
-
-辞書機能:
-1. 単語を辞書検索するには Ctrl+Alt+J を押す
-2. 辞書検索は単語のみに対応しています
-
-音声出力機能:
-1. テキストを音声出力するには Ctrl+Alt+T を押す
-2. この機能を使うには gTTS と pygame モジュールが必要です
-
-家庭教師機能:
-1. 画面下部の「▲ 質問・相談する」をクリック
-2. 翻訳履歴を参考に質問に回答してくれます
-
-その他:
-- Ctrl+マウスホイール: フォントサイズの変更
-        """
+        help_text = self.get_message('help_content')
 
         text_widget = tk.Text(help_window, wrap=tk.WORD, padx=10, pady=10)
         text_widget.pack(expand=True, fill=tk.BOTH)
         text_widget.insert(tk.END, help_text)
         text_widget.config(state=tk.DISABLED)
 
-        tk.Button(help_window, text="閉じる", command=help_window.destroy).pack(pady=10)
+        tk.Button(help_window, text=self.get_message('close_button'), command=help_window.destroy).pack(pady=10)
 
     def show_about(self):
         """バージョン情報ダイアログを表示"""
         about_window = tk.Toplevel(self)
-        about_window.title("バージョン情報")
+        about_window.title(self.get_message('about_title'))
         self._center_window(about_window, 300, 200)
         about_window.resizable(False, False)
         about_window.transient(self)
 
-        about_text = f"""
-クリップボード翻訳ツール
-Version {VERSION}
-
-DeepL API とClaude APIを使用して、
-クリップボードのテキストを翻訳・解説します。
-音声出力機能も搭載しています。
-        """
+        about_text = self.get_message('about_content', version=VERSION)
 
         tk.Label(about_window, text=about_text, justify=tk.CENTER).pack(expand=True)
-        tk.Button(about_window, text="閉じる", command=about_window.destroy).pack(pady=10)
+        tk.Button(about_window, text=self.get_message('close_button'), command=about_window.destroy).pack(pady=10)
 
     def on_closing(self):
         """アプリケーション終了時の処理"""

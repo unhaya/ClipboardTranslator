@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-ClipboardTranslator v1.00
+ClipboardTranslator v1.20
 クリップボードの単語を自動的に翻訳・辞書検索・音声出力するデスクトップアプリケーション
+
+v1.20 新機能:
+- 多言語対応（日英中韓仏独西葡伊蘭波露）
+- 翻訳先言語を設定で選択可能
 
 使い方:
 1. テキストをコピー (Ctrl+C)
@@ -23,7 +27,7 @@ sys.path.insert(0, project_root)
 from ui.main_window import TranslationApp
 
 # 重複起動防止用のミューテックス名
-MUTEX_NAME = "ClipboardTranslator_v1.00_SingleInstance"
+MUTEX_NAME = "ClipboardTranslator_v1.20_SingleInstance"
 
 
 def check_single_instance():

@@ -4,7 +4,7 @@
 """
 import tkinter as tk
 from typing import Optional, Callable
-from config.constants import MESSAGES
+from config.constants import MESSAGES, get_message
 from config.settings import config
 
 
@@ -20,10 +20,11 @@ class StatusBar(tk.Frame):
         """
         super().__init__(parent, **kwargs)
 
-        # ステータスラベル
+        # ステータスラベル（初期テキストは多言語対応）
+        initial_text = self._get_initial_message('waiting')
         self.status_label = tk.Label(
             self,
-            text="待機中...",
+            text=initial_text,
             bd=1,
             relief=tk.SUNKEN,
             anchor=tk.W
@@ -33,15 +34,15 @@ class StatusBar(tk.Frame):
         # 自動リセット用のタイマーID
         self._reset_timer_id: Optional[str] = None
 
+    def _get_initial_message(self, key: str) -> str:
+        """初期化時用のメッセージ取得（設定ファイルから言語を取得）"""
+        response_language = config.get('Settings', 'response_language', fallback='EN')
+        return get_message(key, response_language)
+
     def _get_message(self, key: str, **kwargs) -> str:
-        """設定された言語に基づいてメッセージを取得"""
-        response_language = config.get('Settings', 'response_language', fallback='JA')
-        message = MESSAGES.get(response_language, MESSAGES['JA']).get(key, key)
-
-        if kwargs:
-            message = message.format(**kwargs)
-
-        return message
+        """設定された言語に基づいてメッセージを取得（フォールバック対応）"""
+        response_language = config.get('Settings', 'response_language', fallback='EN')
+        return get_message(key, response_language, **kwargs)
 
     def update(self, message_key: str, duration: int = 3000, **kwargs) -> None:
         """
@@ -58,7 +59,8 @@ class StatusBar(tk.Frame):
             self._reset_timer_id = None
 
         # メッセージを取得（キーが存在しない場合は直接文字列として使用）
-        if message_key in MESSAGES.get('JA', {}) or message_key in MESSAGES.get('EN', {}):
+        # ENをベースにチェック（フォールバック言語）
+        if message_key in MESSAGES.get('EN', {}):
             message = self._get_message(message_key, **kwargs)
         else:
             message = message_key

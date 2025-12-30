@@ -1,4 +1,4 @@
-# ClipboardTranslator v1.00 - Translation Module
+# ClipboardTranslator v1.20 - Translation Module
 import requests
 import json
 import sys
@@ -6,19 +6,37 @@ import os
 
 # 親ディレクトリをパスに追加
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config.constants import DEEPL_URL, CLAUDE_API_URL
+from config.constants import DEEPL_URL, CLAUDE_API_URL, TRANSLATION_LANGUAGES
 from config.settings import config
 
 
+# DeepL API言語コードマッピング（v1.20: 多言語対応）
+# DeepL APIは一部の言語で特殊なコードを使用する
+DEEPL_LANG_CODE_MAP = {
+    'ZH': 'ZH-HANS',  # 中国語簡体字
+    'PT-BR': 'PT-BR',  # ブラジルポルトガル語
+}
+
+
 def translate_with_deepl(text, target_lang):
-    """DeepL APIを使用してテキストを翻訳"""
+    """
+    DeepL APIを使用してテキストを翻訳
+
+    Parameters:
+        text (str): 翻訳するテキスト
+        target_lang (str): 翻訳先言語コード（JA, EN, ZH, KO, FR, DE, ES, PT-BR, IT, NL, PL, RU）
+
+    Returns:
+        str: 翻訳されたテキスト、エラー時はNone
+    """
     try:
         api_key = config.get('Settings', 'deepl_api_key', fallback='')
         if not api_key:
             print("DeepL APIキーが設定されていません。設定画面から設定してください。")
             return None
 
-        target_lang_code = 'JA' if target_lang == 'JA' else 'EN'
+        # 言語コードをDeepL API形式に変換
+        target_lang_code = DEEPL_LANG_CODE_MAP.get(target_lang, target_lang)
 
         headers = {
             'Authorization': f'DeepL-Auth-Key {api_key}',
