@@ -157,6 +157,23 @@ AI Tutor mode is not just an AI chatbot. It's a **dedicated tutor that remembers
 - **High-Precision Search**: Auto-detects related history using BM25 + morphological analysis
 - **Temporal Weighting**: Prioritizes recently learned content
 
+### How AI Tutor Remembers Your History
+
+AI Tutor uses a **two-layer memory system**:
+
+| Layer | Purpose | Storage |
+|-------|---------|---------|
+| **Conversation History** | Recent chat context | In-memory (configurable) |
+| **Translation Database** | All past lookups | SQLite (permanent) |
+
+**BM25 Search Algorithm:**
+- When you ask a question, the tutor searches your entire translation history using BM25
+- BM25 ranks results by relevance (word frequency, document frequency, text length)
+- Recent entries are weighted higher (exponential decay over 30 days)
+- Japanese text is analyzed with morphological analysis (Janome) for accurate matching
+
+This means even if your conversation history is short, the tutor can recall any word you've ever looked up.
+
 ### Example
 
 ```
