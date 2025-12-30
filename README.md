@@ -52,6 +52,7 @@ ClipTrans is optimized for situations where speed matters:
 - Participating in foreign-language communities
 
 The translated text is automatically placed in your clipboard, ready to paste and send instantly.
+Translation completes in ~2 seconds on average.
 
 - No extra windows.
 - No thinking in a foreign language.
