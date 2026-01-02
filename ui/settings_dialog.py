@@ -9,9 +9,10 @@ from tkinter import ttk, messagebox
 import webbrowser
 import requests
 
-# macOS判定（CtrlラベルをCmdに変更するため）
+# macOS判定（キーラベルを変更するため）
 IS_MACOS = platform.system() == 'Darwin'
 CTRL_LABEL = "Cmd" if IS_MACOS else "Ctrl"
+ALT_LABEL = "Option" if IS_MACOS else "Alt"
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.constants import DEEPL_URL, KEY_OPTIONS, DEFAULT_SETTINGS, TUTOR_MODEL_OPTIONS, LANGUAGE_OPTIONS, UI_LANGUAGE_OPTIONS, MESSAGES, get_message, get_default_claude_prompt, get_default_tutor_prompt
@@ -174,7 +175,7 @@ def show_settings_dialog(app):
     hotkey_shift_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'hotkey_shift', False))
 
     ttk.Checkbutton(modifiers_frame, text=CTRL_LABEL, variable=hotkey_ctrl_var).pack(side="left", padx=(0, 10))
-    ttk.Checkbutton(modifiers_frame, text="Alt", variable=hotkey_alt_var).pack(side="left", padx=(0, 10))
+    ttk.Checkbutton(modifiers_frame, text=ALT_LABEL, variable=hotkey_alt_var).pack(side="left", padx=(0, 10))
     ttk.Checkbutton(modifiers_frame, text="Shift", variable=hotkey_shift_var).pack(side="left")
 
     key_frame = ttk.Frame(shortcut_frame)
@@ -198,7 +199,7 @@ def show_settings_dialog(app):
     dict_hotkey_shift_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'dict_hotkey_shift', False))
 
     ttk.Checkbutton(dict_modifiers_frame, text=CTRL_LABEL, variable=dict_hotkey_ctrl_var).pack(side="left", padx=(0, 10))
-    ttk.Checkbutton(dict_modifiers_frame, text="Alt", variable=dict_hotkey_alt_var).pack(side="left", padx=(0, 10))
+    ttk.Checkbutton(dict_modifiers_frame, text=ALT_LABEL, variable=dict_hotkey_alt_var).pack(side="left", padx=(0, 10))
     ttk.Checkbutton(dict_modifiers_frame, text="Shift", variable=dict_hotkey_shift_var).pack(side="left")
 
     dict_key_frame = ttk.Frame(dict_shortcut_frame)
@@ -223,7 +224,7 @@ def show_settings_dialog(app):
 
     ttk.Checkbutton(speech_modifiers_frame, text=CTRL_LABEL, variable=speech_hotkey_ctrl_var).pack(side="left",
                                                                                                 padx=(0, 10))
-    ttk.Checkbutton(speech_modifiers_frame, text="Alt", variable=speech_hotkey_alt_var).pack(side="left", padx=(0, 10))
+    ttk.Checkbutton(speech_modifiers_frame, text=ALT_LABEL, variable=speech_hotkey_alt_var).pack(side="left", padx=(0, 10))
     ttk.Checkbutton(speech_modifiers_frame, text="Shift", variable=speech_hotkey_shift_var).pack(side="left")
 
     speech_key_frame = ttk.Frame(speech_shortcut_frame)

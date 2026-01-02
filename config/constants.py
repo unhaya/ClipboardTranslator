@@ -1554,8 +1554,9 @@ def get_message(key: str, lang: str = 'EN', **kwargs) -> str:
         except KeyError:
             pass
 
-    # macOSではショートカット表示を Ctrl → Cmd に置換
+    # macOSではショートカット表示を変換
     if platform.system() == 'Darwin':
         msg = msg.replace('Ctrl+', 'Cmd+')
+        msg = msg.replace('Alt+', 'Option+')
 
     return msg
