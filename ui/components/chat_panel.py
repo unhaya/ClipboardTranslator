@@ -57,7 +57,7 @@ class ChatPanel(tk.Frame):
         # 入力テキストボックス（絵文字対応フォント）
         self._input_text = tk.Text(
             self._input_frame,
-            height=2,
+            height=3,
             wrap=tk.WORD,
             bg='#1e1e1e',
             fg='#ffffff',

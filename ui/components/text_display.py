@@ -174,18 +174,28 @@ class TextDisplay(tk.Text):
                 self.insert(tk.END, line[2:] + '\n', 'md_h1')
                 continue
 
-            # リスト項目
+            # リスト項目（Markdown形式: -, *, +）
             list_match = re.match(r'^(\s*)[-*+]\s+(.*)$', line)
             if list_match:
                 indent = list_match.group(1)
                 content = list_match.group(2)
-                self.insert(tk.END, indent + '• ', 'md_bullet')
+                self.insert(tk.END, indent + '- ', 'md_bullet')
                 self._render_inline_markdown(content)
                 self.insert(tk.END, '\n')
                 continue
 
-            # 番号付きリスト
-            num_list_match = re.match(r'^(\s*)(\d+)\.\s+(.*)$', line)
+            # AIが出力する既存のビュレットリスト（•で始まる行）
+            bullet_match = re.match(r'^(\s*)•\s*(.*)$', line)
+            if bullet_match:
+                indent = bullet_match.group(1)
+                content = bullet_match.group(2)
+                self.insert(tk.END, indent + '- ', 'md_bullet')
+                self._render_inline_markdown(content)
+                self.insert(tk.END, '\n')
+                continue
+
+            # 番号付きリスト（セクション番号も含む: 1. 2. 等）
+            num_list_match = re.match(r'^(\s*)(\d+)\.\s*(.*)$', line)
             if num_list_match:
                 indent = num_list_match.group(1)
                 num = num_list_match.group(2)
@@ -351,13 +361,14 @@ class TextDisplay(tk.Text):
         """テキストにMarkdown記法が含まれているか判定"""
         md_patterns = [
             r'\*\*.+?\*\*',      # **bold**
-            r'\*.+?\*',          # *italic*
+            r'(?<!\*)\*(?!\*).+?(?<!\*)\*(?!\*)',  # *italic* (not **)
             r'`.+?`',            # `code`
             r'^#{1,3}\s',        # # heading
             r'^[-*+]\s',         # - list
             r'^\d+\.\s',         # 1. numbered list
             r'```',              # code block
             r'^\|.+\|$',         # | table |
+            r'^•\s',             # • bullet (AI output pattern)
         ]
         for pattern in md_patterns:
             if re.search(pattern, text, re.MULTILINE):
