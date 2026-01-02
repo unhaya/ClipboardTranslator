@@ -241,13 +241,23 @@ Usar Markdown.
 
 
 def get_default_claude_prompt(lang: str = 'EN') -> str:
-    """指定言語のデフォルト辞書検索プロンプトを取得"""
-    return DEFAULT_CLAUDE_PROMPTS.get(lang, DEFAULT_CLAUDE_PROMPTS['EN'])
+    """指定言語の辞書検索プロンプトを取得（INI優先、フォールバック付き）"""
+    try:
+        from config.prompts import get_prompt_manager
+        return get_prompt_manager().get_dictionary_prompt(lang)
+    except Exception:
+        # インポートエラーやファイルエラー時はハードコードのデフォルトを使用
+        return DEFAULT_CLAUDE_PROMPTS.get(lang, DEFAULT_CLAUDE_PROMPTS['EN'])
 
 
 def get_default_tutor_prompt(lang: str = 'EN') -> str:
-    """指定言語のデフォルト家庭教師プロンプトを取得"""
-    return DEFAULT_TUTOR_PROMPTS.get(lang, DEFAULT_TUTOR_PROMPTS['EN'])
+    """指定言語の家庭教師プロンプトを取得（INI優先、フォールバック付き）"""
+    try:
+        from config.prompts import get_prompt_manager
+        return get_prompt_manager().get_tutor_prompt(lang)
+    except Exception:
+        # インポートエラーやファイルエラー時はハードコードのデフォルトを使用
+        return DEFAULT_TUTOR_PROMPTS.get(lang, DEFAULT_TUTOR_PROMPTS['EN'])
 
 # 翻訳対応言語（DeepL API）
 # キー: DeepL APIの言語コード, 値: 表示名
