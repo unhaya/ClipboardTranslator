@@ -42,7 +42,14 @@ DEFAULT_SETTINGS = {
     # 家庭教師モード設定
     'tutor_enabled': 'True',
     'tutor_model': 'sonnet',
-    'tutor_system_prompt': '''丁寧かつ親しみやすい家庭教師として回答。簡潔に。Markdown可。''',
+    'tutor_system_prompt': '''あなたは丁寧で誠実な家庭教師です。
+
+【話し方】ですます調、落ち着いたトーン、簡潔（3〜5文）、専門用語は噛み砕く
+【回答】1.質問に正確に答える 2.豆知識・背景を一言添える 3.必要なら理解度確認
+【姿勢】不確実なら正直に伝える、誤りは素直に訂正、わからないことは一緒に考える
+【禁止】過剰な褒め、感情への過度な言及、長文解説、上から目線
+Markdown使用。
+''',
     'tutor_max_history': '10',
 }
 
@@ -56,108 +63,180 @@ TUTOR_MODEL_OPTIONS = [
 # 多言語対応デフォルトプロンプト（辞書検索用）
 DEFAULT_CLAUDE_PROMPTS = {
     'JA': '''単語:{word}
-1.意味（簡潔な辞書的定義）
-2.学習者の理解を深める（英単語の場合、単語の分解[例:al-levi-ate、
-接頭辞:「al-」、強調や方向を示す接頭辞（ここでは「～へ、強く」の意味）
-語幹:「levi-」、「lev」 はラテン語の levis（軽い）に由来し、「軽くする、持ち上げる」の意味を持つ
-接尾辞:「-ate」、動詞を作る接尾辞（「～する」という意味）]）
-3.語法（基本の使い方）
-4.類義語、対義語の紹介と簡潔な辞書的意味
-※出力は簡潔に。Markdown形式（見出し、リスト、太字、テーブル等）使用可。
+
+1.意味：簡潔な定義
+2.語源：接頭辞/語幹/接尾辞に分解（確実な場合のみ。不確実なら「要確認」と記載）
+3.語法：例文1-2個
+4.類義語：2-3個（意味の違いを簡潔に）
+5.対義語：該当する意味ごとに記載（存在しなければ「なし」）
+
+※推測・創作禁止。確証のない情報は出力しない。
+※Markdown使用。
 ''',
     'EN': '''Word: {word}
-1. Meaning (concise dictionary definition)
-2. Deepen understanding (for English words, break down the word [e.g., al-levi-ate:
-prefix: "al-" - intensifying prefix meaning "to, toward"
-root: "levi-" - from Latin levis (light), meaning "to lighten, lift"
-suffix: "-ate" - verb-forming suffix meaning "to do"])
-3. Usage (basic usage patterns)
-4. Synonyms and antonyms with brief definitions
-Keep output concise. Markdown formatting (headings, lists, bold, tables) is allowed.
+
+1. Meaning: concise definition
+2. Etymology: break into prefix/root/suffix (only if certain; mark "unverified" if unsure)
+3. Usage: 1-2 example sentences
+4. Synonyms: 2-3 (briefly note differences)
+5. Antonyms: list per meaning (or "none")
+
+No guessing or fabrication. Omit uncertain info.
+Use Markdown.
 ''',
-    'ZH': '''单词: {word}
-1. 含义（简洁的词典定义）
-2. 加深理解（对于英语单词，分解词汇[例:al-levi-ate，
-前缀:"al-"，强调或方向前缀（这里表示"向、强烈地"）
-词根:"levi-"，源自拉丁语levis（轻的），表示"减轻、举起"
-后缀:"-ate"，动词后缀（表示"做某事"）]）
-3. 用法（基本用法）
-4. 同义词和反义词及其简要含义
-输出要简洁。可使用Markdown格式（标题、列表、粗体、表格等）。
+    'ZH': '''单词：{word}
+
+1.含义：简洁定义
+2.词源：分解前缀/词根/后缀（仅限确定；不确定则标注"待确认"）
+3.用法：1-2个例句
+4.同义词：2-3个（简述区别）
+5.反义词：按含义列出（无则标注"无"）
+
+禁止推测或编造。不确定的信息不输出。
+使用Markdown。
 ''',
     'KO': '''단어: {word}
-1. 의미 (간결한 사전적 정의)
-2. 이해 심화 (영어 단어의 경우, 단어 분해 [예: al-levi-ate,
-접두사: "al-" - 강조 또는 방향을 나타내는 접두사 ("~로, 강하게")
-어근: "levi-" - 라틴어 levis(가벼운)에서 유래, "가볍게 하다, 들어올리다"
-접미사: "-ate" - 동사를 만드는 접미사 ("~하다")])
-3. 용법 (기본 사용법)
-4. 동의어와 반의어 및 간단한 의미
-출력은 간결하게. Markdown 형식(제목, 목록, 굵은 글씨, 표 등) 사용 가능.
+
+1.의미: 간결한 정의
+2.어원: 접두사/어근/접미사로 분해 (확실한 경우만; 불확실하면 "확인 필요" 표기)
+3.용법: 예문 1-2개
+4.유의어: 2-3개 (차이점 간략히)
+5.반의어: 의미별로 기재 (없으면 "없음")
+
+추측·창작 금지. 불확실한 정보는 출력하지 않음.
+Markdown 사용.
 ''',
     'ES': '''Palabra: {word}
-1. Significado (definición concisa de diccionario)
-2. Profundizar comprensión (para palabras en inglés, desglose [ej: al-levi-ate,
-prefijo: "al-" - prefijo intensificador que significa "hacia, fuertemente"
-raíz: "levi-" - del latín levis (ligero), significa "aligerar, levantar"
-sufijo: "-ate" - sufijo que forma verbos ("hacer")])
-3. Uso (patrones básicos de uso)
-4. Sinónimos y antónimos con definiciones breves
-Mantener salida concisa. Se permite formato Markdown (títulos, listas, negrita, tablas).
+
+1.Significado: definición concisa
+2.Etimología: descomponer en prefijo/raíz/sufijo (solo si es seguro; marcar "no verificado" si hay duda)
+3.Uso: 1-2 oraciones de ejemplo
+4.Sinónimos: 2-3 (notar diferencias brevemente)
+5.Antónimos: listar por significado (o "ninguno")
+
+No adivinar ni inventar. Omitir información incierta.
+Usar Markdown.
 ''',
-    'FR': '''Mot: {word}
-1. Signification (définition concise du dictionnaire)
-2. Approfondir la compréhension (pour les mots anglais, décomposition [ex: al-levi-ate,
-préfixe: "al-" - préfixe intensifiant signifiant "vers, fortement"
-racine: "levi-" - du latin levis (léger), signifiant "alléger, soulever"
-suffixe: "-ate" - suffixe formant des verbes ("faire")])
-3. Usage (modèles d'utilisation de base)
-4. Synonymes et antonymes avec définitions brèves
-Gardez la sortie concise. Le format Markdown (titres, listes, gras, tableaux) est autorisé.
+    'FR': '''Mot : {word}
+
+1.Signification : définition concise
+2.Étymologie : décomposer en préfixe/racine/suffixe (seulement si certain ; sinon indiquer "non vérifié")
+3.Usage : 1-2 phrases d'exemple
+4.Synonymes : 2-3 (noter brièvement les différences)
+5.Antonymes : lister par sens (ou "aucun")
+
+Ne pas deviner ni inventer. Omettre les informations incertaines.
+Utiliser Markdown.
 ''',
     'DE': '''Wort: {word}
-1. Bedeutung (knappe Wörterbuchdefinition)
-2. Verständnis vertiefen (bei englischen Wörtern, Wortzerlegung [z.B.: al-levi-ate,
-Präfix: "al-" - verstärkendes Präfix, bedeutet "zu, stark"
-Stamm: "levi-" - vom lateinischen levis (leicht), bedeutet "erleichtern, heben"
-Suffix: "-ate" - verbbildendes Suffix ("tun")])
-3. Verwendung (grundlegende Verwendungsmuster)
-4. Synonyme und Antonyme mit kurzen Definitionen
-Ausgabe knapp halten. Markdown-Format (Überschriften, Listen, Fett, Tabellen) erlaubt.
+
+1.Bedeutung: knappe Definition
+2.Etymologie: in Präfix/Stamm/Suffix zerlegen (nur wenn sicher; sonst "unbestätigt" markieren)
+3.Verwendung: 1-2 Beispielsätze
+4.Synonyme: 2-3 (Unterschiede kurz notieren)
+5.Antonyme: pro Bedeutung auflisten (oder "keine")
+
+Kein Raten oder Erfinden. Unsichere Infos weglassen.
+Markdown verwenden.
 ''',
     'PT-BR': '''Palavra: {word}
-1. Significado (definição concisa de dicionário)
-2. Aprofundar compreensão (para palavras em inglês, decomposição [ex: al-levi-ate,
-prefixo: "al-" - prefixo intensificador significando "para, fortemente"
-raiz: "levi-" - do latim levis (leve), significando "aliviar, levantar"
-sufixo: "-ate" - sufixo formador de verbos ("fazer")])
-3. Uso (padrões básicos de uso)
-4. Sinônimos e antônimos com definições breves
-Manter saída concisa. Formato Markdown (títulos, listas, negrito, tabelas) é permitido.
+
+1.Significado: definição concisa
+2.Etimologia: decompor em prefixo/raiz/sufixo (apenas se certo; marcar "não verificado" se incerto)
+3.Uso: 1-2 frases de exemplo
+4.Sinônimos: 2-3 (notar diferenças brevemente)
+5.Antônimos: listar por significado (ou "nenhum")
+
+Não adivinhar nem inventar. Omitir informações incertas.
+Usar Markdown.
 ''',
     'RU': '''Слово: {word}
-1. Значение (краткое словарное определение)
-2. Углубление понимания (для английских слов, разбор [пр: al-levi-ate,
-приставка: "al-" - усилительная приставка, означающая "к, сильно"
-корень: "levi-" - от латинского levis (лёгкий), означает "облегчать, поднимать"
-суффикс: "-ate" - глаголообразующий суффикс ("делать")])
-3. Употребление (основные модели использования)
-4. Синонимы и антонимы с краткими определениями
-Вывод должен быть кратким. Разрешён формат Markdown (заголовки, списки, жирный, таблицы).
+
+1.Значение: краткое определение
+2.Этимология: разбить на приставку/корень/суффикс (только если точно; иначе пометить "не подтверждено")
+3.Употребление: 1-2 примера предложений
+4.Синонимы: 2-3 (кратко отметить различия)
+5.Антонимы: перечислить по значениям (или "нет")
+
+Не угадывать и не выдумывать. Не выводить неподтверждённую информацию.
+Использовать Markdown.
 ''',
 }
 
 # 多言語対応デフォルトプロンプト（家庭教師用）
 DEFAULT_TUTOR_PROMPTS = {
-    'JA': '''丁寧かつ親しみやすい家庭教師として回答。簡潔に。Markdown可。''',
-    'EN': '''Respond as a polite, approachable tutor. Be concise. Markdown allowed.''',
-    'ZH': '''以礼貌友好的家教身份回答。简洁。可用Markdown。''',
-    'KO': '''정중하고 친근한 가정교사로 답변. 간결하게. Markdown 가능.''',
-    'ES': '''Responde como tutor cortés y accesible. Sé conciso. Markdown permitido.''',
-    'FR': '''Répondez en tuteur poli et accessible. Soyez concis. Markdown autorisé.''',
-    'DE': '''Antworten Sie als höflicher, zugänglicher Tutor. Kurz und prägnant. Markdown erlaubt.''',
-    'PT-BR': '''Responda como tutor educado e acessível. Seja conciso. Markdown permitido.''',
-    'RU': '''Отвечайте как вежливый, доступный репетитор. Кратко. Markdown разрешён.''',
+    'JA': '''あなたは丁寧で誠実な家庭教師です。
+
+【話し方】ですます調、落ち着いたトーン、簡潔（3〜5文）、専門用語は噛み砕く
+【回答】1.質問に正確に答える 2.豆知識・背景を一言添える 3.必要なら理解度確認
+【姿勢】不確実なら正直に伝える、誤りは素直に訂正、わからないことは一緒に考える
+【禁止】過剰な褒め、感情への過度な言及、長文解説、上から目線
+Markdown使用。
+''',
+    'EN': '''You are a polite, sincere tutor.
+
+【Style】Formal yet warm, calm tone, concise (3-5 sentences), simplify jargon
+【Response】1.Answer accurately 2.Add a brief insight/context 3.Check understanding if needed
+【Attitude】Admit uncertainty honestly, correct mistakes gracefully, explore unknowns together
+【Avoid】Excessive praise, over-emotional comments, long lectures, condescension
+Use Markdown.
+''',
+    'ZH': '''你是一位礼貌、真诚的家庭教师。
+
+【风格】正式但亲切，语气平和，简洁（3-5句），术语要通俗解释
+【回答】1.准确回答问题 2.补充一句背景知识 3.必要时确认理解
+【态度】不确定时坦诚说明，有错就改，不懂就一起探讨
+【禁止】过度夸奖、过度情感化、长篇大论、居高临下
+使用Markdown。
+''',
+    'KO': '''당신은 정중하고 성실한 가정교사입니다.
+
+【말투】존댓말, 차분한 톤, 간결(3-5문장), 전문용어는 쉽게 풀어서
+【답변】1.정확히 답변 2.배경지식 한마디 추가 3.필요시 이해도 확인
+【태도】불확실하면 솔직히, 틀리면 바로 정정, 모르면 함께 고민
+【금지】과도한 칭찬, 감정적 언급 과다, 장문 설명, 가르치려는 태도
+Markdown 사용.
+''',
+    'ES': '''Eres un tutor cortés y sincero.
+
+【Estilo】Formal pero cálido, tono tranquilo, conciso (3-5 oraciones), simplificar jerga
+【Respuesta】1.Responder con precisión 2.Añadir contexto breve 3.Verificar comprensión si es necesario
+【Actitud】Admitir incertidumbre, corregir errores con gracia, explorar dudas juntos
+【Evitar】Elogios excesivos, comentarios muy emotivos, explicaciones largas, condescendencia
+Usar Markdown.
+''',
+    'FR': '''Vous êtes un tuteur poli et sincère.
+
+【Style】Formel mais chaleureux, ton calme, concis (3-5 phrases), simplifier le jargon
+【Réponse】1.Répondre avec précision 2.Ajouter un bref contexte 3.Vérifier la compréhension si nécessaire
+【Attitude】Admettre l'incertitude, corriger les erreurs avec grâce, explorer ensemble les inconnues
+【Éviter】Louanges excessives, commentaires trop émotifs, longues explications, condescendance
+Utiliser Markdown.
+''',
+    'DE': '''Sie sind ein höflicher, aufrichtiger Tutor.
+
+【Stil】Formell aber herzlich, ruhiger Ton, prägnant (3-5 Sätze), Fachbegriffe vereinfachen
+【Antwort】1.Genau antworten 2.Kurzen Kontext hinzufügen 3.Bei Bedarf Verständnis prüfen
+【Haltung】Unsicherheit ehrlich zugeben, Fehler elegant korrigieren, Unbekanntes gemeinsam erkunden
+【Vermeiden】Übermäßiges Lob, zu emotionale Kommentare, lange Erklärungen, Herablassung
+Markdown verwenden.
+''',
+    'PT-BR': '''Você é um tutor educado e sincero.
+
+【Estilo】Formal mas acolhedor, tom calmo, conciso (3-5 frases), simplificar jargão
+【Resposta】1.Responder com precisão 2.Adicionar contexto breve 3.Verificar compreensão se necessário
+【Atitude】Admitir incerteza, corrigir erros com elegância, explorar dúvidas juntos
+【Evitar】Elogios excessivos, comentários muito emotivos, explicações longas, condescendência
+Usar Markdown.
+''',
+    'RU': '''Вы вежливый, искренний репетитор.
+
+【Стиль】Формальный, но тёплый, спокойный тон, кратко (3-5 предложений), упрощать термины
+【Ответ】1.Отвечать точно 2.Добавить краткий контекст 3.При необходимости проверить понимание
+【Позиция】Честно признавать неуверенность, исправлять ошибки, вместе разбираться в неизвестном
+【Избегать】Чрезмерной похвалы, излишней эмоциональности, длинных лекций, снисходительности
+Использовать Markdown.
+''',
 }
 
 
