@@ -34,8 +34,8 @@ def show_settings_dialog(app):
 
     settings_window = tk.Toplevel(app)
     settings_window.title(msg('settings_title'))
-    _center_window(settings_window, 550, 550)
-    settings_window.minsize(550, 520)
+    _center_window(settings_window, 600, 700)
+    settings_window.minsize(600, 650)
     settings_window.resizable(True, True)
     settings_window.transient(app)
     settings_window.grab_set()
