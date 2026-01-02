@@ -2,10 +2,14 @@
 """
 グローバルホットキーの監視・管理を担当するサービス
 """
+import platform
 import threading
 from typing import Callable, Dict, Optional
 from pynput import keyboard
 from config.settings import config
+
+# macOS判定
+IS_MACOS = platform.system() == 'Darwin'
 
 
 class HotkeyService:
@@ -24,10 +28,16 @@ class HotkeyService:
         return default
 
     def _build_hotkey_string(self, key: str, use_ctrl: bool, use_alt: bool, use_shift: bool) -> str:
-        """pynput用のホットキー文字列を構築する"""
+        """pynput用のホットキー文字列を構築する
+
+        macOSでは Ctrl → Cmd に自動変換
+        """
         parts = []
         if use_ctrl:
-            parts.append('<ctrl>')
+            if IS_MACOS:
+                parts.append('<cmd>')  # macOSではCtrlをCmdに変換
+            else:
+                parts.append('<ctrl>')
         if use_alt:
             parts.append('<alt>')
         if use_shift:

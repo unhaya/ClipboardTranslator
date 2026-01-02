@@ -1,5 +1,6 @@
 # ClipboardTranslator v1.20 - Settings Dialog (Multi-language)
 import os
+import platform
 import sys
 import re
 import threading
@@ -7,6 +8,10 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import webbrowser
 import requests
+
+# macOS判定（CtrlラベルをCmdに変更するため）
+IS_MACOS = platform.system() == 'Darwin'
+CTRL_LABEL = "Cmd" if IS_MACOS else "Ctrl"
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config.constants import DEEPL_URL, KEY_OPTIONS, DEFAULT_SETTINGS, TUTOR_MODEL_OPTIONS, LANGUAGE_OPTIONS, UI_LANGUAGE_OPTIONS, MESSAGES, get_message, get_default_claude_prompt, get_default_tutor_prompt
@@ -168,7 +173,7 @@ def show_settings_dialog(app):
     hotkey_alt_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'hotkey_alt', True))
     hotkey_shift_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'hotkey_shift', False))
 
-    ttk.Checkbutton(modifiers_frame, text="Ctrl", variable=hotkey_ctrl_var).pack(side="left", padx=(0, 10))
+    ttk.Checkbutton(modifiers_frame, text=CTRL_LABEL, variable=hotkey_ctrl_var).pack(side="left", padx=(0, 10))
     ttk.Checkbutton(modifiers_frame, text="Alt", variable=hotkey_alt_var).pack(side="left", padx=(0, 10))
     ttk.Checkbutton(modifiers_frame, text="Shift", variable=hotkey_shift_var).pack(side="left")
 
@@ -192,7 +197,7 @@ def show_settings_dialog(app):
     dict_hotkey_alt_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'dict_hotkey_alt', True))
     dict_hotkey_shift_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'dict_hotkey_shift', False))
 
-    ttk.Checkbutton(dict_modifiers_frame, text="Ctrl", variable=dict_hotkey_ctrl_var).pack(side="left", padx=(0, 10))
+    ttk.Checkbutton(dict_modifiers_frame, text=CTRL_LABEL, variable=dict_hotkey_ctrl_var).pack(side="left", padx=(0, 10))
     ttk.Checkbutton(dict_modifiers_frame, text="Alt", variable=dict_hotkey_alt_var).pack(side="left", padx=(0, 10))
     ttk.Checkbutton(dict_modifiers_frame, text="Shift", variable=dict_hotkey_shift_var).pack(side="left")
 
@@ -216,7 +221,7 @@ def show_settings_dialog(app):
     speech_hotkey_alt_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'speech_hotkey_alt', True))
     speech_hotkey_shift_var = tk.BooleanVar(value=app.get_config_bool('Settings', 'speech_hotkey_shift', False))
 
-    ttk.Checkbutton(speech_modifiers_frame, text="Ctrl", variable=speech_hotkey_ctrl_var).pack(side="left",
+    ttk.Checkbutton(speech_modifiers_frame, text=CTRL_LABEL, variable=speech_hotkey_ctrl_var).pack(side="left",
                                                                                                 padx=(0, 10))
     ttk.Checkbutton(speech_modifiers_frame, text="Alt", variable=speech_hotkey_alt_var).pack(side="left", padx=(0, 10))
     ttk.Checkbutton(speech_modifiers_frame, text="Shift", variable=speech_hotkey_shift_var).pack(side="left")

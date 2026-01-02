@@ -1535,6 +1535,8 @@ def get_message(key: str, lang: str = 'EN', **kwargs) -> str:
     Returns:
         ローカライズされたメッセージ文字列
     """
+    import platform
+
     # 指定言語のメッセージを試行
     if lang in MESSAGES and key in MESSAGES[lang]:
         msg = MESSAGES[lang][key]
@@ -1551,5 +1553,9 @@ def get_message(key: str, lang: str = 'EN', **kwargs) -> str:
             msg = msg.format(**kwargs)
         except KeyError:
             pass
+
+    # macOSではショートカット表示を Ctrl → Cmd に置換
+    if platform.system() == 'Darwin':
+        msg = msg.replace('Ctrl+', 'Cmd+')
 
     return msg
