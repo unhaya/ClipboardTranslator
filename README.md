@@ -84,7 +84,7 @@ You can type in any supported language and communicate instantly with users of a
 
 ### Multilingual Input Translation
 
-- **One hotkey** to translate your input text (default: `Ctrl+Alt+D`)
+- **One hotkey** to translate your input text (default: `Ctrl+Alt+D` on Windows, `Cmd+Option+D` on macOS)
 - Translation optimized for **sending**, not reading
 - **Clipboard is automatically replaced** with translated text
 - Paste and send immediately in any app
@@ -192,6 +192,7 @@ python main.py
 
 ### Basic Operations
 
+**Windows:**
 | Function | Hotkey | Description |
 |----------|--------|-------------|
 | Translate | `Ctrl+Alt+D` | Translate clipboard text |
@@ -199,14 +200,32 @@ python main.py
 | Speech | `Ctrl+Alt+T` | Read text aloud |
 | Font Size | `Ctrl+Wheel` | Adjust text size in the window |
 
+**macOS:**
+| Function | Hotkey | Description |
+|----------|--------|-------------|
+| Translate | `Cmd+Option+D` | Translate clipboard text |
+| Dictionary | `Cmd+Option+J` | Show detailed word explanation |
+| Speech | `Cmd+Option+T` | Read text aloud |
+| Font Size | `Cmd+Wheel` | Adjust text size in the window |
+
 ### Workflow
 
+**Windows:**
 ```
 1. Type your message in your native language
 2. Select the text and press Ctrl+C
 3. Press Ctrl+Alt+D to translate!
    -> Translation is automatically copied to clipboard
 4. Press Ctrl+V to paste and send!
+```
+
+**macOS:**
+```
+1. Type your message in your native language
+2. Select the text and press Cmd+C
+3. Press Cmd+Option+D to translate!
+   -> Translation is automatically copied to clipboard
+4. Press Cmd+V to paste and send!
 ```
 
 **The key advantage**: Your clipboard now contains the translated text, not the original. You can immediately paste it into any application - chat, documents, emails - without any extra steps.
