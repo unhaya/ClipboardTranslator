@@ -6,7 +6,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 import re
 from typing import Callable, Optional
-from config.constants import MESSAGES
+from config.constants import MESSAGES, get_message
 from config.settings import config
 
 
@@ -426,12 +426,15 @@ class TextDisplay(tk.Text):
     def log_tutor_message(self, message: str, is_user: bool = True) -> None:
         """家庭教師モードのメッセージを表示（Markdown対応）"""
         self.configure(state='normal')
+        lang = config.get("response_language", "EN")
 
         if is_user:
-            self.insert(tk.END, "\n[あなた] ", 'tutor_user_tag')
+            user_label = get_message("tutor_user_label", lang)
+            self.insert(tk.END, f"\n[{user_label}] ", 'tutor_user_tag')
             self.insert(tk.END, message + "\n")
         else:
-            self.insert(tk.END, "\n[先生] ", 'tutor_ai_tag')
+            ai_label = get_message("tutor_ai_label", lang)
+            self.insert(tk.END, f"\n[{ai_label}] ", 'tutor_ai_tag')
             # AIの返答はMarkdownでレンダリング
             if self._has_markdown(message):
                 self._render_markdown(message)

@@ -7,6 +7,7 @@
 - 高精度履歴検索（BM25 + 時間的重み付け）
 """
 from config.settings import config
+from config.constants import get_message
 from core.translation import query_claude_api
 from core.network import is_connected
 from .search import SmartHistorySearcher, extract_keywords
@@ -140,7 +141,8 @@ class TutorChatHandler:
         if recent_history:
             context_parts.append("\n直近の会話:")
             for entry in recent_history:
-                role_label = "ユーザー" if entry['role'] == 'user' else "先生"
+                lang = config.get("response_language", "EN")
+                role_label = get_message("tutor_user_label", lang) if entry['role'] == 'user' else get_message("tutor_ai_label", lang)
                 content = entry['content'][:200] + "..." if len(entry['content']) > 200 else entry['content']
                 context_parts.append(f"{role_label}: {content}")
 

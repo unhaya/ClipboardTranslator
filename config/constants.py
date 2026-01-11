@@ -408,6 +408,9 @@ MESSAGES = {
         'chat_toggle_close': '▼ 閉じる',
         'chat_placeholder': '質問を入力してください...',
         'chat_send': '送信',
+        # Tutorモードラベル
+        'tutor_user_label': 'あなた',
+        'tutor_ai_label': '先生',
         # ヘルプダイアログ
         'help_title': '使い方',
         'help_content': '''使い方:
@@ -541,6 +544,9 @@ DeepL API とClaude APIを使用して、
         'chat_toggle_close': '▼ Close',
         'chat_placeholder': 'Enter your question...',
         'chat_send': 'Send',
+        # Tutor mode labels
+        'tutor_user_label': 'You',
+        'tutor_ai_label': 'Tutor',
         # Help Dialog
         'help_title': 'How to Use',
         'help_content': '''How to Use:
@@ -674,6 +680,9 @@ Also includes text-to-speech feature.''',
         'chat_toggle_close': '▼ 关闭',
         'chat_placeholder': '请输入您的问题...',
         'chat_send': '发送',
+        # Tutor模式标签
+        'tutor_user_label': '你',
+        'tutor_ai_label': '老师',
         # 帮助对话框
         'help_title': '使用方法',
         'help_content': '''使用方法:
@@ -807,6 +816,9 @@ Version {version}
         'chat_toggle_close': '▼ 닫기',
         'chat_placeholder': '질문을 입력하세요...',
         'chat_send': '전송',
+        # 튜터 모드 라벨
+        'tutor_user_label': '당신',
+        'tutor_ai_label': '선생님',
         # 도움말 대화상자
         'help_title': '사용법',
         'help_content': '''사용법:
@@ -940,6 +952,9 @@ DeepL API와 Claude API를 사용하여
         'chat_toggle_close': '▼ Cerrar',
         'chat_placeholder': 'Escriba su pregunta...',
         'chat_send': 'Enviar',
+        # Etiquetas del modo tutor
+        'tutor_user_label': 'Tú',
+        'tutor_ai_label': 'Tutor',
         # Diálogo de ayuda
         'help_title': 'Cómo usar',
         'help_content': '''Cómo usar:
@@ -1073,6 +1088,9 @@ También incluye función de texto a voz.''',
         'chat_toggle_close': '▼ Fermer',
         'chat_placeholder': 'Entrez votre question...',
         'chat_send': 'Envoyer',
+        # Labels du mode tuteur
+        'tutor_user_label': 'Vous',
+        'tutor_ai_label': 'Tuteur',
         # Dialogue d'aide
         'help_title': 'Mode d\'emploi',
         'help_content': '''Mode d'emploi:
@@ -1206,6 +1224,9 @@ Inclut également la synthèse vocale.''',
         'chat_toggle_close': '▼ Schließen',
         'chat_placeholder': 'Geben Sie Ihre Frage ein...',
         'chat_send': 'Senden',
+        # Tutor-Modus-Labels
+        'tutor_user_label': 'Du',
+        'tutor_ai_label': 'Tutor',
         # Hilfe-Dialog
         'help_title': 'Anleitung',
         'help_content': '''Anleitung:
@@ -1339,6 +1360,9 @@ Enthält auch Sprachausgabe-Funktion.''',
         'chat_toggle_close': '▼ Fechar',
         'chat_placeholder': 'Digite sua pergunta...',
         'chat_send': 'Enviar',
+        # Rótulos do modo tutor
+        'tutor_user_label': 'Você',
+        'tutor_ai_label': 'Tutor',
         # Diálogo de ajuda
         'help_title': 'Como usar',
         'help_content': '''Como usar:
@@ -1472,6 +1496,9 @@ Também inclui função de texto em voz.''',
         'chat_toggle_close': '▼ Закрыть',
         'chat_placeholder': 'Введите ваш вопрос...',
         'chat_send': 'Отправить',
+        # Метки режима репетитора
+        'tutor_user_label': 'Вы',
+        'tutor_ai_label': 'Репетитор',
         # Диалог справки
         'help_title': 'Инструкция',
         'help_content': '''Инструкция:

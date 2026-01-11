@@ -3,6 +3,8 @@
 
 from datetime import datetime
 from typing import List, Dict, Optional
+from config.constants import get_message
+from config.settings import config
 
 
 class TutorSession:
@@ -82,7 +84,8 @@ class TutorSession:
 
         formatted = []
         for msg in messages:
-            role_label = "ユーザー" if msg['role'] == 'user' else "先生"
+            lang = config.get("response_language", "EN")
+            role_label = get_message("tutor_user_label", lang) if msg['role'] == 'user' else get_message("tutor_ai_label", lang)
             formatted.append(f"{role_label}: {msg['content']}")
 
         return "\n".join(formatted)
