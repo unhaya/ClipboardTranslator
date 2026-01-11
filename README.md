@@ -257,6 +257,8 @@ aggravate, worsen
 
 AI Tutor mode is not just an AI chatbot. It's a **dedicated tutor that remembers your learning history** and provides guidance based on what you've learned before.
 
+<img src="./Image/2026-01-11%20201726.png" width="50%">
+
 ### Features
 
 - **Learning History Utilization**: Remembers words you've translated and looked up
